@@ -9,6 +9,8 @@
  * Revision History:
  * 	-161220 MSG : Creation Date
  */
+
+/*System includes.*/
 #include <stdio.h>
 #include "board.h"
 #include "peripherals.h"
@@ -16,6 +18,14 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
+#include "user_interface.h"
+
+/*Kernel Includes*/
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "timers.h"
+
 
 /*******************************************
  * Const and Macro Defines
@@ -69,7 +79,7 @@ int main(void) {
 	/* Init FSL debug console. */
 	BOARD_InitDebugConsole();
 #endif
-
+	homescreen();
 	PRINTF("Hello World\n");
 	while (1);
 	return 0;
