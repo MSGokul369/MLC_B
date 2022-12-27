@@ -84,7 +84,7 @@ int main(void) {
 }
 
 static void configure_device(void *pvParameters) {
-	ui_flow();
+	master_ui();
 }
 static void generate_pattern(void *pvParameters) {
 	PRINTF("Pattern");

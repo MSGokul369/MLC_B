@@ -37,7 +37,7 @@ void ui_homescreen(void) {
 	PRINTF("\t Type index and press Enter \r\n");
 }
 
-void ui_rgb_code_scheme(void) {
+void ui_rgb_code_scheme(int curent_rgb_scheme_index) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
@@ -50,6 +50,22 @@ void ui_rgb_code_scheme(void) {
 	PRINTF("\t2.\t444 RGB \r\n");
 	PRINTF("\t3.\t888 RGB \r\n");
 	PRINTF("\t4.\tHome \r\n");
+	PRINTF("\r\n");
+	switch (curent_rgb_scheme_index) {
+		case 1:
+			PRINTF("\tCurrent color scheme - 332 RGB\r\n");
+			break;
+		case 2:
+			PRINTF("\tCurrent color scheme - 444 RGB\r\n");
+			break;
+		case 3:
+			PRINTF("\tCurrent color scheme - 888 RGB\r\n");
+			break;
+		default:
+			PRINTF("Data invalid\r\n");
+			break;
+	}
+	PRINTF("\r\n");
 	PRINTF("\t Type index and press Enter \r\n");
 
 }
@@ -74,7 +90,8 @@ void ui_configure_colour_pattern(void) {
 
 }
 
-void ui_modes(void) {
+void ui_modes(int current_mode_index) {
+
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
@@ -88,6 +105,25 @@ void ui_modes(void) {
 	PRINTF("\t3.\tAuto UP/DOWN\r\n");
 	PRINTF("\t4.\tManual\r\n");
 	PRINTF("\t5.\tGo back\r\n");
+	PRINTF("\r\n");
+	switch (current_mode_index) {
+	case 1:
+		PRINTF("\tCurrent Mode - Auto: UP\r\n");
+		break;
+	case 2:
+		PRINTF("\tCurrent Mode - Auto: DOWN\r\n");
+		break;
+	case 3:
+		PRINTF("\tCurrent Mode - Auto: UP/DOWN\r\n");
+		break;
+	case 4:
+		PRINTF("\tCurrent Mode - Manual\r\n");
+		break;
+	default:
+		PRINTF("Mode invalid\r\n");
+		break;
+	}
+	PRINTF("\r\n");
 	PRINTF("\t Type index and press Enter \r\n");
 
 }
@@ -100,8 +136,10 @@ void ui_delay(int delay) {
 	}
 }
 
-void ui_flow(void) {
+void master_ui(void) {
 	int input_index;
+	int current_mode_index = 1;
+	int curent_rgb_scheme_index = 1;
 
 	while (1) {
 		ui_homescreen();
@@ -120,7 +158,7 @@ void ui_flow(void) {
 
 		if (input_index == 1) {
 			while (1) {
-				ui_rgb_code_scheme();
+				ui_rgb_code_scheme(curent_rgb_scheme_index);
 
 				while (1) {
 					SCANF("%d", &input_index);
@@ -135,6 +173,7 @@ void ui_flow(void) {
 					while (1) {
 						PRINTF("\r\n\t332 scheme selected...");
 						PRINTF("\r\n\tPlease wait...");
+						curent_rgb_scheme_index = 1;
 						ui_delay(5000000);
 						break;
 					}
@@ -142,6 +181,7 @@ void ui_flow(void) {
 					while (1) {
 						PRINTF("\r\n\t444 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
+						curent_rgb_scheme_index = 2;
 						ui_delay(5000000);
 						break;
 					}
@@ -149,6 +189,7 @@ void ui_flow(void) {
 					while (1) {
 						PRINTF("\r\n\t888 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
+						curent_rgb_scheme_index = 3;
 						ui_delay(5000000);
 						break;
 					}
@@ -215,7 +256,7 @@ void ui_flow(void) {
 					PRINTF("\r\n\tPlease wait...");
 					ui_delay(5000000);
 					while (1) {
-						ui_modes();
+						ui_modes(current_mode_index);
 						while (1) {
 							SCANF("%d", &input_index);
 							if (input_index > 0 && input_index < 6) {
@@ -230,6 +271,7 @@ void ui_flow(void) {
 							while (1) {
 								PRINTF("\r\n\tAuto: UP mode selected.");
 								PRINTF("\r\n\tPlease wait...");
+								current_mode_index = 1;
 								ui_delay(5000000);
 								break;
 							}
@@ -237,6 +279,7 @@ void ui_flow(void) {
 							while (1) {
 								PRINTF("\r\n\tAuto: DOWN mode selected.");
 								PRINTF("\r\n\tPlease wait...");
+								current_mode_index = 2;
 								ui_delay(5000000);
 								break;
 							}
@@ -244,6 +287,7 @@ void ui_flow(void) {
 							while (1) {
 								PRINTF("\r\n\tAuto: UP/DOWN mode selected.");
 								PRINTF("\r\n\tPlease wait...");
+								current_mode_index = 3;
 								ui_delay(5000000);
 								break;
 							}
@@ -252,6 +296,7 @@ void ui_flow(void) {
 							while (1) {
 								PRINTF("\r\n\tManual Mode selected");
 								PRINTF("\r\n\tPlease wait...");
+								current_mode_index = 4;
 								ui_delay(5000000);
 								break;
 							}
