@@ -18,14 +18,11 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
-#include "user_interface.h"
-
-/*Kernel Includes*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
-
+#include "../UI/user_interface.h"
 
 /*******************************************
  * Const and Macro Defines
@@ -35,36 +32,27 @@
  *  Typedefs and Enum Declarations
  ***********************************/
 //none
-
 /***********************************
  *  External Variable Declarations
  ***********************************/
 //none
-
 /***********************************
  *  Const Declarations
  ***********************************/
 //none
-
 /***********************************
  *  Public Variables
  ***********************************/
 //none
-
 /***********************************
  *  Private Variables
  ***********************************/
 //none
-
 /***********************************
  * Private Prototypes
  ***********************************/
-//none
-
-/***********************************
- * Private Prototypes
- ***********************************/
-//none
+static void configure_device(void *pvParameters);
+static void generate_pattern(void *pvParameters);
 
 /*
  * @brief   Application entry point.
@@ -75,12 +63,111 @@ int main(void) {
 	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
 	BOARD_InitBootPeripherals();
-#ifndef BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
-	/* Init FSL debug console. */
 	BOARD_InitDebugConsole();
-#endif
-	homescreen();
-	PRINTF("Hello World\n");
-	while (1);
+
+	if (xTaskCreate(configure_device, "CONFIGURE_DEVICE", 1000, NULL, 2,
+	NULL) != pdPASS) {
+		PRINTF("Task creation failed!.\n\t");
+		while (1)
+			;
+	}
+	if (xTaskCreate(generate_pattern, "GENERATE_PATTERN", 1000, NULL, 2,
+	NULL) != pdPASS) {
+		PRINTF("Task creation failed!.\n\t");
+		while (1)
+			;
+	}
+	vTaskStartScheduler();
+	while (1)
+		;
 	return 0;
+}
+
+static void configure_device(void *pvParameters) {
+
+	int input_index;
+
+	while (1) {
+		ui_homescreen();
+		while (1) {
+			SCANF("%d", &input_index);
+			if (input_index > 0 && input_index < 3) {
+				break;
+			} else {
+				PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+				continue;
+			}
+		}
+		PRINTF("\r\n\tSelected Index : %d", input_index);
+		PRINTF("\r\n\tPlease wait...");
+		ui_delay(5000000);
+
+		if (input_index == 1) {
+			while (1) {
+				ui_rgb_code_scheme();
+
+				while (1) {
+					SCANF("%d", &input_index);
+					if (input_index > 0 && input_index < 5) {
+						break;
+					} else {
+						PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+						continue;
+					}
+				}
+				if (input_index == 1) {
+					while (1) {
+						PRINTF("\r\n\t332 scheme selected...");
+						PRINTF("\r\n\tPlease wait...");
+						ui_delay(5000000);
+						break;
+					}
+				} else if (input_index == 2) {
+					while (1) {
+						PRINTF("\r\n\t444 scheme unavailable!");
+						PRINTF("\r\n\tPlease wait...");
+						ui_delay(5000000);
+						break;
+					}
+				} else if (input_index == 3) {
+					while (1) {
+					PRINTF("\r\n\t888 scheme unavailable!");
+					PRINTF("\r\n\tPlease wait...");
+					ui_delay(5000000);
+					break;
+					}
+
+				} else if (input_index == 4) {
+					PRINTF("\r\n\tLoading Homescreen");
+					PRINTF("\r\n\tPlease wait...");
+					break;
+				} else {
+					PRINTF("\r\n\tInvalid data received");
+				}
+			}
+		} else if (input_index == 2) {
+			while (1) {
+				ui_configure_colour_pattern();
+
+				while (1) {
+					SCANF("%d", &input_index);
+					if (input_index > 0 && input_index < 8) {
+						break;
+					} else {
+						PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+						continue;
+					}
+				}
+			}
+		} else {
+			PRINTF("\r\n\tInvalid data received!");
+			ui_delay(5000000);
+		}
+	}
+
+}
+static void generate_pattern(void *pvParameters) {
+	PRINTF("Pattern");
+	while (1)
+		;
 }
