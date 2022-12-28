@@ -1,7 +1,7 @@
 #include "../UI/user_interface.h"
 #include <stdio.h>
 #include "fsl_debug_console.h"
-void ui_homescreen(void) {
+void ui_homescreen(int start_colour[3], int end_colour[3], int current_mode_index) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
@@ -9,8 +9,7 @@ void ui_homescreen(void) {
 	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
-	PRINTF(
-			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+	PRINTF("\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
@@ -21,10 +20,27 @@ void ui_homescreen(void) {
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Current Configurations:- \r\n");
 	PRINTF("\t\t\t\t Refresh Rate\t\t:\txxxxx Hz \r\n");
-	PRINTF("\t\t\t\t Start Color Code\t:\tx x x True Color \r\n");
-	PRINTF("\t\t\t\t End Color Code\t\t:\tx x x True Color \r\n");
+	PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n", start_colour[0],start_colour[1],start_colour[2]);
+	PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n", end_colour[0],end_colour[1],end_colour[2]);
 	PRINTF("\t\t\t\t Color Change Rate\t:\txxx\r\n");
-	PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP \r\n");
+
+	switch (current_mode_index) {
+		case 1:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP \r\n");
+			break;
+		case 2:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-DOWN \r\n");
+			break;
+		case 3:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN \r\n");
+			break;
+		case 4:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tManual \r\n");
+			break;
+		default:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tInvalid \r\n");
+			break;
+		}
 	PRINTF("\t\t\t\t Resolution\t\t:\t \r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Current RGB Code : x x x \r\n");
@@ -52,18 +68,18 @@ void ui_rgb_code_scheme(int curent_rgb_scheme_index) {
 	PRINTF("\t4.\tHome \r\n");
 	PRINTF("\r\n");
 	switch (curent_rgb_scheme_index) {
-		case 1:
-			PRINTF("\tCurrent color scheme - 332 RGB\r\n");
-			break;
-		case 2:
-			PRINTF("\tCurrent color scheme - 444 RGB\r\n");
-			break;
-		case 3:
-			PRINTF("\tCurrent color scheme - 888 RGB\r\n");
-			break;
-		default:
-			PRINTF("Data invalid\r\n");
-			break;
+	case 1:
+		PRINTF("\tCurrent color scheme - 332 RGB\r\n");
+		break;
+	case 2:
+		PRINTF("\tCurrent color scheme - 444 RGB\r\n");
+		break;
+	case 3:
+		PRINTF("\tCurrent color scheme - 888 RGB\r\n");
+		break;
+	default:
+		PRINTF("Data invalid\r\n");
+		break;
 	}
 	PRINTF("\r\n");
 	PRINTF("\t Type index and press Enter \r\n");
@@ -140,9 +156,10 @@ void master_ui(void) {
 	int input_index;
 	int current_mode_index = 1;
 	int curent_rgb_scheme_index = 1;
+	int start_color[3] = { 0, 0, 0 }, end_color[3] = { 0, 0, 0 };
 
 	while (1) {
-		ui_homescreen();
+		ui_homescreen(start_color, end_color, current_mode_index);
 		while (1) {
 			SCANF("%d", &input_index);
 			if (input_index > 0 && input_index < 3) {
@@ -220,6 +237,44 @@ void master_ui(void) {
 						PRINTF("\r\n\tStart Color...");
 						PRINTF("\r\n\tPlease wait...");
 						ui_delay(5000000);
+
+						while (1) {
+							while (1) {
+								PRINTF("\r\n\tEnter Start color value for RED");
+								SCANF("%d", &start_color[0]);
+								if (start_color[0] >= 0 && start_color[0] < 8) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+
+							while (1) {
+								PRINTF("\r\n\tEnter Start color value for GREEN");
+								SCANF("%d", &start_color[1]);
+								if (start_color[1] >= 0 && start_color[1] < 8) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+
+							while (1) {
+								PRINTF(
+										"\r\n\tEnter Start color value for BLUE");
+								SCANF("%d", &start_color[2]);
+								if (start_color[2] >= 0 && start_color[2] < 4) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+							break;
+						}
+
 						break;
 					}
 				} else if (input_index == 2) {
@@ -227,6 +282,43 @@ void master_ui(void) {
 						PRINTF("\r\n\tEnd Color");
 						PRINTF("\r\n\tPlease wait...");
 						ui_delay(5000000);
+
+						while (1) {
+							while (1) {
+								PRINTF("\r\n\tEnter End color value for RED");
+								SCANF("%d", &end_color[0]);
+								if (end_color[0] >= 0 && end_color[0] < 8) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+
+							while (1) {
+								PRINTF("\r\n\tEnter End color value for GREEN");
+								SCANF("%d", &end_color[1]);
+								if (end_color[1] >= 0 && end_color[1] < 8) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+
+							while (1) {
+								PRINTF("\r\n\tEnter End color value for BLUE");
+								SCANF("%d", &end_color[2]);
+								if (end_color[2] >= 0 && end_color[2] < 4) {
+									break;
+								} else {
+									PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
+									continue;
+								}
+							}
+							break;
+						}
+
 						break;
 					}
 				} else if (input_index == 3) {
