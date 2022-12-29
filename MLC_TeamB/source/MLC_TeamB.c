@@ -59,6 +59,13 @@ static void generate_pattern(void *pvParameters);
  */
 int main(void) {
 
+	/* Define the init structure for the output LED pin*/
+	    gpio_pin_config_t pin_config = {
+	        kGPIO_DigitalInput
+	    };
+	   GPIO_PinInit(GPIOD, 0U, &pin_config);
+
+
 	/* Init board hardware. */
 	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
@@ -84,8 +91,17 @@ int main(void) {
 }
 
 static void configure_device(void *pvParameters) {
-	master_ui();
+
+	uint32_t master_slave_flag;
+	master_slave_flag = GPIO_PinRead ( GPIOD, 0 );
+	//PRINTF("%d", master_slave_flag);
+	if (master_slave_flag == 1){
+		master_ui();
+	}else {
+		slave_ui();
+	}
 }
+
 static void generate_pattern(void *pvParameters) {
 	PRINTF("Pattern");
 	while (1)

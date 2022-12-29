@@ -158,9 +158,12 @@ void BOARD_InitPins(void)
 {
     /* Port A Clock Gate Control: Clock enabled */
     CLOCK_EnableClock(kCLOCK_PortA);
+    CLOCK_EnableClock(kCLOCK_PortD);
+
 
     /* PORTA2 (pin 36) is configured as TRACE_SWO */
     PORT_SetPinMux(PORTA, 2U, kPORT_MuxAlt7);
+    PORT_SetPinMux(PORTD, 0U, kPORT_MuxAsGpio);
 
     PORTA->PCR[2] = ((PORTA->PCR[2] &
                       /* Mask bits to zero which are setting */
@@ -176,6 +179,21 @@ void BOARD_InitPins(void)
                      /* Drive Strength Enable: Low drive strength is configured on the corresponding pin, if pin
                       * is configured as a digital output. */
                      | PORT_PCR_DSE(kPORT_LowDriveStrength));
+
+    PORTD->PCR[0] = ((PORTD->PCR[0] &
+                         /* Mask bits to zero which are setting */
+                         (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_DSE_MASK | PORT_PCR_ISF_MASK)))
+
+                        /* Pull Select: Internal pulldown resistor is enabled on the corresponding pin, if the
+                         * corresponding PE field is set. */
+                        | PORT_PCR_PS(kPORT_PullUp)
+
+                        /* Pull Enable: Internal pullup or pulldown resistor is not enabled on the corresponding pin. */
+                        | PORT_PCR_PE(kPORT_PullUp)
+
+                        /* Drive Strength Enable: Low drive strength is configured on the corresponding pin, if pin
+                         * is configured as a digital output. */
+                        | PORT_PCR_DSE(kPORT_LowDriveStrength));
 }
 
 /* clang-format off */

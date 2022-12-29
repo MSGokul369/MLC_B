@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "fsl_debug_console.h"
 
-
 void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 		int colour_change_rate, int current_mode_index, int resolution[3]) {
 	PRINTF("\e[1;1H\e[2J");
@@ -12,12 +11,13 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
-	PRINTF("\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+	PRINTF(
+			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Dfevice Mode\t:\tMaster \r\n");
+	PRINTF("\t\t\t\t Device Mode\t:\tMaster \r\n");
 	PRINTF("\t\t\t\t Slave Status\t:\tOnline \r\n");
 	PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
 	PRINTF("\r\n");
@@ -57,6 +57,61 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	PRINTF("\t\t\t\t p.\tPause/Resume \r\n");
 	PRINTF("\t\t\t\t  \r\n");
 	PRINTF("\t Type index and press Enter \r\n");
+}
+
+void ui_homescreen_slave() {
+
+	int current_mode_index = 1;
+	int colour_change_rate = 1;
+	int led_refresh_rate = 1;
+	int start_colour[3] = { 0, 0, 0 }, end_colour[3] = { 0, 0, 0 },
+			resolution[3] = { 1, 1, 1 };
+
+	PRINTF("\e[1;1H\e[2J");
+	PRINTF("\r\n");
+	PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
+	PRINTF("\t\t\t |  __ \\ /\\   | |    |  ____|__   __|__   __|  ____| \r\n");
+	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
+	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
+	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
+	PRINTF(
+			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+	PRINTF("\r\n");
+	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
+	PRINTF("\t\t\t\t    ******************* \r\n");
+	PRINTF("\r\n");
+	PRINTF("\t\t\t\t Device Mode\t:\tSlave \r\n");
+	PRINTF("\t\t\t\t Master Status\t:\tOnline \r\n");
+	PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
+	PRINTF("\r\n");
+	PRINTF("\t\t\t\t Current Configurations:- \r\n");
+	PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n", led_refresh_rate);
+	PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n",
+			start_colour[0], start_colour[1], start_colour[2]);
+	PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n",
+			end_colour[0], end_colour[1], end_colour[2]);
+	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", colour_change_rate);
+
+	switch (current_mode_index) {
+	case 1:
+		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP \r\n");
+		break;
+	case 2:
+		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-DOWN \r\n");
+		break;
+	case 3:
+		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN \r\n");
+		break;
+	case 4:
+		PRINTF("\t\t\t\t Mode\t\t\t:\tManual \r\n");
+		break;
+	default:
+		PRINTF("\t\t\t\t Mode\t\t\t:\tInvalid \r\n");
+		break;
+	}
+	PRINTF("\t\t\t\t Resolution\t\t:\t%d %d %d RGB\r\n", resolution[0],
+			resolution[1], resolution[2]);
+	PRINTF("\r\n");
 }
 
 void ui_rgb_code_scheme(int curent_rgb_scheme_index) {
@@ -204,7 +259,7 @@ void master_ui(void) {
 		}
 		PRINTF("\r\n\tSelected Index : %c", input_index);
 		PRINTF("\r\n\tPlease wait...");
-		//ui_delay(5000000);
+		ui_delay(5000000);
 
 		if (input_index == '1') {
 			while (1) {
@@ -514,11 +569,11 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 					&& (start_colour[1] < end_colour[1])
 					&& (start_colour[2] < end_colour[2])) {
 				PRINTF("\r\n\tSuccess");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			}
 		} else if (current_mode_index == 2) {
@@ -526,7 +581,7 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 					&& (start_colour[1] > end_colour[1])
 					&& (start_colour[2] > end_colour[2])) {
 				PRINTF("\r\n\tSuccess");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -565,11 +620,11 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 					&& (start_colour[1] < end_colour[1])
 					&& (start_colour[2] < end_colour[2])) {
 				PRINTF("\r\n\tSuccess");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			}
 		} else if (current_mode_index == 2) {
@@ -577,11 +632,11 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 					&& (start_colour[1] > end_colour[1])
 					&& (start_colour[2] > end_colour[2])) {
 				PRINTF("\r\n\tSuccess");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
-				//ui_delay(5000000);
+				ui_delay(5000000);
 				break;
 			}
 
@@ -591,11 +646,11 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 						&& (start_colour[1] < end_colour[1])
 						&& (start_colour[2] < end_colour[2])) {
 					PRINTF("\r\n\tSuccess");
-					//ui_delay(5000000);
+					ui_delay(5000000);
 					break;
 				} else {
 					PRINTF("\r\n\tInvalid Configuration");
-					//ui_delay(5000000);
+					ui_delay(5000000);
 					break;
 				}
 			}
@@ -606,4 +661,13 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			PRINTF("\r\n\tInvalid Data");
 		}
 	}
+}
+
+void slave_ui() {
+	while (1) {
+		ui_homescreen_slave();
+		while (1)
+			;
+	}
+
 }
