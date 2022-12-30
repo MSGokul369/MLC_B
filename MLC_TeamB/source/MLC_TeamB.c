@@ -18,6 +18,7 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
+#include "fsl_uart.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -27,6 +28,9 @@
 /*******************************************
  * Const and Macro Defines
  *******************************************/
+
+#define clear() printf("\033[H\033[J")
+#define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
 
 /***********************************
  *  Typedefs and Enum Declarations
@@ -103,7 +107,10 @@ static void configure_device(void *pvParameters) {
 }
 
 static void generate_pattern(void *pvParameters) {
-	PRINTF("Pattern");
+    int number;
+
+    PRINTF("\033[16;25Hhello");
+
 	while (1)
 		;
 }

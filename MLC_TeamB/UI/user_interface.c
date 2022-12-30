@@ -1,6 +1,8 @@
 #include "../UI/user_interface.h"
 #include <stdio.h>
 #include "fsl_debug_console.h"
+#include "fsl_uart.h"
+
 
 void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 		int colour_change_rate, int current_mode_index, int resolution[3]) {
@@ -11,8 +13,7 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
-	PRINTF(
-			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+	PRINTF("\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
@@ -114,7 +115,7 @@ void ui_homescreen_slave() {
 	PRINTF("\r\n");
 }
 
-void ui_rgb_code_scheme(int curent_rgb_scheme_index) {
+void ui_rgb_code_scheme(int current_rgb_scheme_index) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
@@ -123,12 +124,14 @@ void ui_rgb_code_scheme(int curent_rgb_scheme_index) {
 	PRINTF("\r\n");
 	PRINTF("\t Select color code Scheme \r\n");
 	PRINTF("\r\n");
-	PRINTF("\t1.\t332 RGB \r\n");
+	/*PRINTF("\t1.\t332 RGB \r\n");
 	PRINTF("\t2.\t444 RGB \r\n");
 	PRINTF("\t3.\t888 RGB \r\n");
 	PRINTF("\t4.\tHome \r\n");
 	PRINTF("\r\n");
-	switch (curent_rgb_scheme_index) {
+	*/
+
+	switch (current_rgb_scheme_index) {
 	case 1:
 		PRINTF("\tCurrent color scheme - 332 RGB\r\n");
 		break;
@@ -265,15 +268,9 @@ void master_ui(void) {
 			while (1) {
 				ui_rgb_code_scheme(curent_rgb_scheme_index);
 
-				while (1) {
-					SCANF("%d", &input_index);
-					if (input_index > 0 && input_index < 5) {
-						break;
-					} else {
-						PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
-						continue;
-					}
-				}
+				char colour_scheme_menu[4] [30] = {"332 RGB","444 RGB", "888 RGB", "Home"};
+					input_index = arrow_key_navigate(colour_scheme_menu, 4, 9, 0);
+
 				if (input_index == 1) {
 					while (1) {
 						PRINTF("\r\n\t332 scheme selected...");
@@ -670,4 +667,62 @@ void slave_ui() {
 			;
 	}
 
+}
+
+int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor)
+{
+    char tx_buffer;
+    int run_flag = 1;
+    int *pointer = malloc(num_of_ops * sizeof(int));
+    int ret = 0;
+    memset(pointer,0,num_of_ops * sizeof(int));
+    pointer[0] = 1;
+    while (run_flag) {
+        PRINTF("\033[%d;%dHPress Enter to Select\r\nArrow Keys to move cursor\r\n", x_cor, y_cor);
+        for (int i = 0; i < num_of_ops; i++) {
+            if (pointer[i] == 1) {
+                            PRINTF("  ");
+                        } else {
+                            PRINTF("");
+                        }
+            PRINTF("%s", prompt[i]);
+            if (pointer[i] == 1) {
+                PRINTF("\t<==\r\n");
+            } else {
+                PRINTF("                     \r\n");
+            }
+        }
+        while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+            UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+        tx_buffer = UART_ReadByte(UART0);
+        if (tx_buffer == 66) {
+            //PRINTF("Down Arrow\r\n");
+            int temp;
+            temp = pointer[num_of_ops - 1];
+            for (int j = num_of_ops - 1; j != 0; j--) {
+                pointer[j] = pointer[j - 1];
+            }
+            pointer[0] = temp;
+        } else if (tx_buffer == 65) {
+            //PRINTF("Up Arrow\r\n");
+            int temp;
+            temp = pointer[0];
+            for (int j = 0; j != num_of_ops - 1; j++) {
+                pointer[j] = pointer[j + 1];
+            }
+            pointer[num_of_ops - 1] = temp;
+        } else if (tx_buffer == 13) {
+            //PRINTF("Enter\r\n");
+            for(int j=0; j  < num_of_ops ; j++)
+            {
+                if (pointer[j] ==  1)
+                {
+                    ret = j;
+                    run_flag = 0;
+                    break;
+                }
+            }
+        }
+    }
+    return ret + 1;
 }

@@ -14,3 +14,5 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 		int colour_change_rate, int current_mode_index, int resolution[3]);
 void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 		int colour_change_rate, int current_mode_index, int resolution[3]);
+int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor);
+
