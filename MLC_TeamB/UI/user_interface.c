@@ -3,6 +3,19 @@
 #include "fsl_debug_console.h"
 #include "fsl_uart.h"
 
+/* UART instance and clock */
+#define UART            UART0
+#define UART_CLKSRC     UART0_CLK_SRC
+#define UART_CLK_FREQ   CLOCK_GetFreq(UART0_CLK_SRC)
+#define UART_IRQn       UART0_RX_TX_IRQn
+#define UART_IRQHandler UART0_RX_TX_IRQHandler
+
+/*******************************************************************************
+ * Variables
+ ******************************************************************************/
+uint8_t tx_buffer = 0;
+uint8_t valid_data = 1;
+
 void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 		int colour_change_rate, int current_mode_index, int resolution[3]) {
 	PRINTF("\e[1;1H\e[2J");
@@ -309,14 +322,15 @@ void master_ui(void) {
 				ui_configure_colour_pattern(led_refresh_rate, start_color,
 						end_color, colour_change_rate, current_mode_index,
 						resolution);
+
 				char colour_scheme_menu[7][30] = { "Start color", "End color",
 						"Color change resolution", "Color change rate",
 						"LED refresh rate", "Mode", "Home", };
 				input_index = arrow_key_navigate(colour_scheme_menu, 7, 8, 10);
 
+
 				if (input_index == 1) {
 					while (1) {
-
 						while (1) {
 							while (1) {
 								PRINTF("\r\n\tEnter Start color value for RED");
@@ -355,9 +369,9 @@ void master_ui(void) {
 									continue;
 								}
 							}
+
 							break;
 						}
-
 						break;
 					}
 				} else if (input_index == 2) {
@@ -406,6 +420,7 @@ void master_ui(void) {
 					}
 				} else if (input_index == 3) {
 					while (1) {
+
 						while (1) {
 							while (1) {
 								PRINTF("\r\n\tEnter Resolution value for RED");
@@ -450,6 +465,7 @@ void master_ui(void) {
 
 				} else if (input_index == 4) {
 					while (1) {
+
 						PRINTF("\r\n\tEnter the color change rate");
 						SCANF("%d", &colour_change_rate);
 						if (colour_change_rate > 0
@@ -463,6 +479,7 @@ void master_ui(void) {
 					}
 				} else if (input_index == 5) {
 					while (1) {
+
 						PRINTF("\r\n\tEnter the LED refresh rate");
 						SCANF("%d", &led_refresh_rate);
 						if (led_refresh_rate > 0 && led_refresh_rate < 1000) {
@@ -532,6 +549,7 @@ void master_ui(void) {
 					PRINTF("\r\n\tInvalid data received");
 				}
 			}
+
 		} else if (input_index == 3) {
 			start_stop(led_refresh_rate, start_color, end_color,
 					colour_change_rate, current_mode_index, resolution);
@@ -658,14 +676,13 @@ void slave_ui() {
 }
 
 int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) {
-	uint8_t tx_buffer = 0;
 	int run_flag = 1;
 	int *pointer = malloc(num_of_ops * sizeof(int));
 	int ret = 0;
 	memset(pointer, 0, num_of_ops * sizeof(int));
 	pointer[0] = 1;
-	UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
 	while (run_flag) {
+
 		PRINTF("\033[%d;%dHPress Enter to Select", x_cor, y_cor);
 		PRINTF("\033[%d;%dHArrow Keys to move cursor\r\n\n", x_cor + 1, y_cor);
 		for (int i = 0; i < num_of_ops; i++) {
@@ -681,28 +698,19 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 				PRINTF("                     \r\n");
 			}
 		}
-		while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
-			UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-
-		//PRINTF("%d", tx_buffer);
 		while (1) {
-			tx_buffer = UART_ReadByte(UART0);
-			if (tx_buffer == 66 || tx_buffer == 65 || tx_buffer == 13) {
+			if (valid_data == 1) {
 				break;
-			} else {
-				PRINTF("                                           ");
-				PRINTF("                                           ");
-				PRINTF("                                           ");
-				continue;
 			}
 		}
-
+		PRINTF("%d", tx_buffer);
 		if (tx_buffer == 66) {
 			//PRINTF("Down Arrow\r\n");
 			int temp;
 			temp = pointer[num_of_ops - 1];
 			for (int j = num_of_ops - 1; j != 0; j--) {
 				pointer[j] = pointer[j - 1];
+
 			}
 			pointer[0] = temp;
 		} else if (tx_buffer == 65) {
@@ -711,6 +719,7 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 			temp = pointer[0];
 			for (int j = 0; j != num_of_ops - 1; j++) {
 				pointer[j] = pointer[j + 1];
+
 			}
 			pointer[num_of_ops - 1] = temp;
 		} else if (tx_buffer == 13) {
@@ -723,6 +732,17 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 				}
 			}
 		}
+		valid_data = 0;
 	}
 	return ret + 1;
+}
+
+void UART_IRQHandler(void) {
+	if (UART_GetStatusFlags(UART)) {
+		/* If new data arrived. */
+		tx_buffer = UART_ReadByte(UART);
+		valid_data = 1;
+		//UART_WriteByte(UART,data);
+	}
+	SDK_ISR_EXIT_BARRIER;
 }

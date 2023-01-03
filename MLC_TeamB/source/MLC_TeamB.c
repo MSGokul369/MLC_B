@@ -29,6 +29,13 @@
  * Const and Macro Defines
  *******************************************/
 
+/* UART instance and clock */
+#define UART            UART0
+#define UART_CLKSRC     UART0_CLK_SRC
+#define UART_CLK_FREQ   CLOCK_GetFreq(UART0_CLK_SRC)
+#define UART_IRQn       UART0_RX_TX_IRQn
+#define UART_IRQHandler UART0_RX_TX_IRQHandler
+
 #define clear() printf("\033[H\033[J")
 #define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
 
@@ -63,18 +70,18 @@ static void generate_pattern(void *pvParameters);
  */
 int main(void) {
 
-	/* Define the init structure for the output LED pin*/
-	    gpio_pin_config_t pin_config = {
-	        kGPIO_DigitalInput
-	    };
-	   GPIO_PinInit(GPIOD, 0U, &pin_config);
-
 
 	/* Init board hardware. */
 	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
 	BOARD_InitBootPeripherals();
 	BOARD_InitDebugConsole();
+
+	/* Enable RX interrupt. */
+	UART_EnableInterrupts(UART,
+			kUART_RxDataRegFullInterruptEnable
+					| kUART_RxOverrunInterruptEnable);
+	EnableIRQ(UART_IRQn);
 
 	if (xTaskCreate(configure_device, "CONFIGURE_DEVICE", 1000, NULL, 2,
 	NULL) != pdPASS) {
@@ -97,19 +104,18 @@ int main(void) {
 static void configure_device(void *pvParameters) {
 
 	uint32_t master_slave_flag;
-	master_slave_flag = GPIO_PinRead ( GPIOD, 0 );
+	master_slave_flag = GPIO_PinRead( GPIOD, 0);
 	//PRINTF("%d", master_slave_flag);
-	if (master_slave_flag == 1){
+	if (master_slave_flag == 1) {
 		master_ui();
-	}else {
+	} else {
 		slave_ui();
 	}
 }
 
 static void generate_pattern(void *pvParameters) {
-    int number;
 
-    PRINTF("\033[16;25Hhello");
+	PRINTF("\033[16;25Hhello");
 
 	while (1)
 		;
