@@ -327,19 +327,25 @@ void master_ui(void) {
 						"Color change resolution", "Color change rate",
 						"LED refresh rate", "Mode", "Home", };
 				input_index = arrow_key_navigate(colour_scheme_menu, 7, 8, 10);
-
-
+				UART_DisableInterrupts(UART,
+						kUART_RxDataRegFullInterruptEnable
+								| kUART_RxOverrunInterruptEnable);
 				if (input_index == 1) {
 					while (1) {
 						while (1) {
 							while (1) {
 								PRINTF("\r\n\tEnter Start color value for RED");
-								SCANF("%d", &start_color[0]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								start_color[0] = UART_ReadByte(UART0) - 48;
 								if (start_color[0] >= 0 && start_color[0] < 8) {
 									break;
 								} else {
 									PRINTF(
 											"\r\n\tInvalid Entry!\r\n\tTry again...");
+									PRINTF("%d", start_color[0]);
 									continue;
 								}
 							}
@@ -347,7 +353,11 @@ void master_ui(void) {
 							while (1) {
 								PRINTF(
 										"\r\n\tEnter Start color value for GREEN");
-								SCANF("%d", &start_color[1]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								start_color[1] = UART_ReadByte(UART0) - 48;
 								if (start_color[1] >= 0 && start_color[1] < 8) {
 									break;
 								} else {
@@ -360,8 +370,15 @@ void master_ui(void) {
 							while (1) {
 								PRINTF(
 										"\r\n\tEnter Start color value for BLUE");
-								SCANF("%d", &start_color[2]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								start_color[2] = UART_ReadByte(UART0) - 48;
 								if (start_color[2] >= 0 && start_color[2] < 4) {
+									UART_EnableInterrupts(UART,
+											kUART_RxDataRegFullInterruptEnable
+													| kUART_RxOverrunInterruptEnable);
 									break;
 								} else {
 									PRINTF(
@@ -380,7 +397,11 @@ void master_ui(void) {
 						while (1) {
 							while (1) {
 								PRINTF("\r\n\tEnter End color value for RED");
-								SCANF("%d", &end_color[0]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								end_color[0] = UART_ReadByte(UART0) - 48;
 								if (end_color[0] >= 0 && end_color[0] < 8) {
 									break;
 								} else {
@@ -392,7 +413,11 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF("\r\n\tEnter End color value for GREEN");
-								SCANF("%d", &end_color[1]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								end_color[1] = UART_ReadByte(UART0) - 48;
 								if (end_color[1] >= 0 && end_color[1] < 8) {
 									break;
 								} else {
@@ -404,8 +429,15 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF("\r\n\tEnter End color value for BLUE");
-								SCANF("%d", &end_color[2]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								end_color[2] = UART_ReadByte(UART0) - 48;
 								if (end_color[2] >= 0 && end_color[2] < 4) {
+									UART_EnableInterrupts(UART,
+											kUART_RxDataRegFullInterruptEnable
+													| kUART_RxOverrunInterruptEnable);
 									break;
 								} else {
 									PRINTF(
@@ -424,7 +456,11 @@ void master_ui(void) {
 						while (1) {
 							while (1) {
 								PRINTF("\r\n\tEnter Resolution value for RED");
-								SCANF("%d", &resolution[0]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								resolution[0] = UART_ReadByte(UART0) - 48;
 								if (resolution[0] >= 0 && resolution[0] < 8) {
 									break;
 								} else {
@@ -437,7 +473,11 @@ void master_ui(void) {
 							while (1) {
 								PRINTF(
 										"\r\n\tEnter Resolution value for GREEN");
-								SCANF("%d", &resolution[1]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								resolution[1] = UART_ReadByte(UART0) - 48;
 								if (resolution[1] >= 0 && resolution[1] < 8) {
 									break;
 								} else {
@@ -449,8 +489,15 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF("\r\n\tEnter Resolution value for BLUE");
-								SCANF("%d", &resolution[2]);
+								while (!(kUART_RxDataRegFullFlag
+										& UART_GetStatusFlags(UART0)))
+									UART_ClearStatusFlags(UART0,
+											kUART_RxDataRegFullFlag);
+								resolution[2] = UART_ReadByte(UART0) - 48;
 								if (resolution[2] >= 0 && resolution[2] < 4) {
+									UART_EnableInterrupts(UART,
+											kUART_RxDataRegFullInterruptEnable
+													| kUART_RxOverrunInterruptEnable);
 									break;
 								} else {
 									PRINTF(
@@ -467,9 +514,16 @@ void master_ui(void) {
 					while (1) {
 
 						PRINTF("\r\n\tEnter the color change rate");
-						SCANF("%d", &colour_change_rate);
+						while (!(kUART_RxDataRegFullFlag
+								& UART_GetStatusFlags(UART0)))
+							UART_ClearStatusFlags(UART0,
+									kUART_RxDataRegFullFlag);
+						colour_change_rate = UART_ReadByte(UART0) - 48;
 						if (colour_change_rate > 0
 								&& colour_change_rate <= 500) {
+							UART_EnableInterrupts(UART,
+									kUART_RxDataRegFullInterruptEnable
+											| kUART_RxOverrunInterruptEnable);
 							break;
 						} else {
 							PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
@@ -481,8 +535,15 @@ void master_ui(void) {
 					while (1) {
 
 						PRINTF("\r\n\tEnter the LED refresh rate");
-						SCANF("%d", &led_refresh_rate);
+						while (!(kUART_RxDataRegFullFlag
+								& UART_GetStatusFlags(UART0)))
+							UART_ClearStatusFlags(UART0,
+									kUART_RxDataRegFullFlag);
+						led_refresh_rate = UART_ReadByte(UART0) - 48;
 						if (led_refresh_rate > 0 && led_refresh_rate < 1000) {
+							UART_EnableInterrupts(UART,
+									kUART_RxDataRegFullInterruptEnable
+											| kUART_RxOverrunInterruptEnable);
 							break;
 						} else {
 							PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
@@ -493,6 +554,9 @@ void master_ui(void) {
 				} else if (input_index == 6) {
 					PRINTF("\r\n\tMode");
 					PRINTF("\r\n\tPlease wait...");
+					UART_EnableInterrupts(UART,
+							kUART_RxDataRegFullInterruptEnable
+									| kUART_RxOverrunInterruptEnable);
 					//ui_delay(5000000);
 					while (1) {
 						ui_modes(current_mode_index);
@@ -544,6 +608,9 @@ void master_ui(void) {
 				} else if (input_index == 7) {
 					PRINTF("\r\n\tLoading Home");
 					PRINTF("\r\n\tPlease wait...");
+					UART_EnableInterrupts(UART,
+							kUART_RxDataRegFullInterruptEnable
+									| kUART_RxOverrunInterruptEnable);
 					break;
 				} else {
 					PRINTF("\r\n\tInvalid data received");
@@ -593,18 +660,16 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			}
 
 		} else if (current_mode_index == 3) {
-			if (current_mode_index == 1) {
-				if ((start_colour[0] < end_colour[0])
-						&& (start_colour[1] < end_colour[1])
-						&& (start_colour[2] < end_colour[2])) {
-					PRINTF("\r\n\tSuccess");
-					//ui_delay(5000000);
-					break;
-				} else {
-					PRINTF("\r\n\tInvalid Configuration");
-					//ui_delay(5000000);
-					break;
-				}
+			if ((start_colour[0] < end_colour[0])
+					&& (start_colour[1] < end_colour[1])
+					&& (start_colour[2] < end_colour[2])) {
+				PRINTF("\r\n\tSuccess");
+				ui_delay(5000000);
+				break;
+			} else {
+				PRINTF("\r\n\tInvalid Configuration");
+				ui_delay(5000000);
+				break;
 			}
 
 		} else if (current_mode_index == 4) {
@@ -644,20 +709,17 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			}
 
 		} else if (current_mode_index == 3) {
-			if (current_mode_index == 1) {
-				if ((start_colour[0] < end_colour[0])
-						&& (start_colour[1] < end_colour[1])
-						&& (start_colour[2] < end_colour[2])) {
-					PRINTF("\r\n\tSuccess");
-					ui_delay(5000000);
-					break;
-				} else {
-					PRINTF("\r\n\tInvalid Configuration");
-					ui_delay(5000000);
-					break;
-				}
+			if ((start_colour[0] < end_colour[0])
+					&& (start_colour[1] < end_colour[1])
+					&& (start_colour[2] < end_colour[2])) {
+				PRINTF("\r\n\tSuccess");
+				ui_delay(5000000);
+				break;
+			} else {
+				PRINTF("\r\n\tInvalid Configuration");
+				ui_delay(5000000);
+				break;
 			}
-
 		} else if (current_mode_index == 4) {
 			PRINTF("\r\n\tSuccess");
 		} else {
@@ -703,7 +765,7 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 				break;
 			}
 		}
-		PRINTF("%d", tx_buffer);
+		//PRINTF("%d", tx_buffer);
 		if (tx_buffer == 66) {
 			//PRINTF("Down Arrow\r\n");
 			int temp;
