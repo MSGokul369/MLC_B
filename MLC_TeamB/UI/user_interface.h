@@ -7,6 +7,9 @@ void ui_configure_colour_pattern(int led_refresh_rate, int start_colour[3], int 
 void ui_modes(int current_mode_index);
 void ui_delay(int delay);
 
+int colour_change_rate_read();
+int refresh_rate_read();
+
 void master_ui(void);
 void slave_ui(void);
 

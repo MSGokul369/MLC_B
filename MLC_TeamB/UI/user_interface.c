@@ -334,13 +334,14 @@ void master_ui(void) {
 					while (1) {
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter Start color value for RED : ");
+								PRINTF(
+										"\r\n\tEnter Start color value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[0] = UART_ReadByte(UART0) - 48;
-						        UART_WriteByte(UART0, start_color[0] + 48);
+								UART_WriteByte(UART0, start_color[0] + 48);
 								if (start_color[0] >= 0 && start_color[0] < 8) {
 									break;
 								} else {
@@ -359,7 +360,7 @@ void master_ui(void) {
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[1] = UART_ReadByte(UART0) - 48;
-						        UART_WriteByte(UART0, start_color[1] + 48);
+								UART_WriteByte(UART0, start_color[1] + 48);
 								if (start_color[1] >= 0 && start_color[1] < 8) {
 									break;
 								} else {
@@ -377,7 +378,7 @@ void master_ui(void) {
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[2] = UART_ReadByte(UART0) - 48;
-						        UART_WriteByte(UART0, start_color[2] + 48);
+								UART_WriteByte(UART0, start_color[2] + 48);
 								if (start_color[2] >= 0 && start_color[2] < 4) {
 									UART_EnableInterrupts(UART,
 											kUART_RxDataRegFullInterruptEnable
@@ -398,13 +399,14 @@ void master_ui(void) {
 					while (1) {
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for RED : ");
+								PRINTF(
+										"\r\n\tEnter End color value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								end_color[0] = UART_ReadByte(UART0) - 48;
-						        UART_WriteByte(UART0, end_color[0] + 48);
+								UART_WriteByte(UART0, end_color[0] + 48);
 								if (end_color[0] >= 0 && end_color[0] < 8) {
 									break;
 								} else {
@@ -415,7 +417,8 @@ void master_ui(void) {
 							}
 
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for GREEN : ");
+								PRINTF(
+										"\r\n\tEnter End color value for GREEN : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
@@ -432,7 +435,8 @@ void master_ui(void) {
 							}
 
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for BLUE : ");
+								PRINTF(
+										"\r\n\tEnter End color value for BLUE : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
@@ -459,7 +463,8 @@ void master_ui(void) {
 					while (1) {
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter Resolution value for RED : ");
+								PRINTF(
+										"\r\n\tEnter Resolution value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
@@ -483,7 +488,7 @@ void master_ui(void) {
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								resolution[1] = UART_ReadByte(UART0) - 48;
-								UART_WriteByte(UART0, resolution[0] + 48);
+								UART_WriteByte(UART0, resolution[1] + 48);
 								if (resolution[1] >= 0 && resolution[1] < 8) {
 									break;
 								} else {
@@ -519,13 +524,7 @@ void master_ui(void) {
 
 				} else if (input_index == 4) {
 					while (1) {
-
-						PRINTF("\r\n\tEnter the color change rate");
-						while (!(kUART_RxDataRegFullFlag
-								& UART_GetStatusFlags(UART0)))
-							UART_ClearStatusFlags(UART0,
-									kUART_RxDataRegFullFlag);
-						colour_change_rate = UART_ReadByte(UART0) - 48;
+						colour_change_rate = colour_change_rate_read();
 						if (colour_change_rate > 0
 								&& colour_change_rate <= 500) {
 							UART_EnableInterrupts(UART,
@@ -541,13 +540,8 @@ void master_ui(void) {
 				} else if (input_index == 5) {
 					while (1) {
 
-						PRINTF("\r\n\tEnter the LED refresh rate");
-						while (!(kUART_RxDataRegFullFlag
-								& UART_GetStatusFlags(UART0)))
-							UART_ClearStatusFlags(UART0,
-									kUART_RxDataRegFullFlag);
-						led_refresh_rate = UART_ReadByte(UART0) - 48;
-						if (led_refresh_rate > 0 && led_refresh_rate < 1000) {
+						led_refresh_rate = refresh_rate_read();
+						if (led_refresh_rate > 0 && led_refresh_rate < 9999) {
 							UART_EnableInterrupts(UART,
 									kUART_RxDataRegFullInterruptEnable
 											| kUART_RxOverrunInterruptEnable);
@@ -804,6 +798,137 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 		valid_data = 0;
 	}
 	return ret + 1;
+}
+
+int colour_change_rate_read() {
+	int colour_change_rate[3];
+	int return_val;
+
+	while (1) {
+		PRINTF("\n\r\tEdit Values :");
+		PRINTF("\033[19;50H                                          ");
+		PRINTF("\033[19;50H_");
+		PRINTF("\033[19;55H_");
+		PRINTF("\033[19;60H_");
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			colour_change_rate[0] = UART_ReadByte(UART0) - 48;
+			if ((colour_change_rate[0] >= 0) && (colour_change_rate[0] < 10)) {
+				PRINTF("\033[19;50H%d", colour_change_rate[0]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			colour_change_rate[1] = UART_ReadByte(UART0) - 48;
+			if ((colour_change_rate[1] >= 0) && (colour_change_rate[1] < 10)) {
+				PRINTF("\033[19;55H%d", colour_change_rate[1]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			colour_change_rate[2] = UART_ReadByte(UART0) - 48;
+			if ((colour_change_rate[2] >= 0) && (colour_change_rate[2] < 10)) {
+				PRINTF("\033[19;60H%d", colour_change_rate[2]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		return_val = ((colour_change_rate[0] * 100)
+				+ (colour_change_rate[1] * 10) + (colour_change_rate[2]));
+		ui_delay(1000000);
+
+		if (return_val <= 500) {
+			break;
+		} else {
+			PRINTF("\n\r\tInvalid Value!\n\r\tTry again...");
+			ui_delay(500000);
+			continue;
+		}
+
+	}
+	return return_val;
+}
+
+int refresh_rate_read() {
+	int refresh_rate[4];
+	int return_val;
+
+	while (1) {
+
+		PRINTF("\n\r\tEdit Values :");
+		PRINTF("\033[19;50H                                                 ");
+		PRINTF("\033[19;50H_");
+		PRINTF("\033[19;55H_");
+		PRINTF("\033[19;60H_");
+		PRINTF("\033[19;65H_");
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			refresh_rate[0] = UART_ReadByte(UART0) - 48;
+			if ((refresh_rate[0] >= 0) && (refresh_rate[0] < 10)) {
+				PRINTF("\033[19;50H%d", refresh_rate[0]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			refresh_rate[1] = UART_ReadByte(UART0) - 48;
+			if ((refresh_rate[1] >= 0) && (refresh_rate[1] < 10)) {
+				PRINTF("\033[19;55H%d", refresh_rate[1]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			refresh_rate[2] = UART_ReadByte(UART0) - 48;
+			if ((refresh_rate[2] >= 0) && (refresh_rate[2] < 10)) {
+				PRINTF("\033[19;60H%d", refresh_rate[2]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		while (1) {
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			refresh_rate[3] = UART_ReadByte(UART0) - 48;
+			if ((refresh_rate[3] >= 0) && (refresh_rate[3] < 10)) {
+				PRINTF("\033[19;65H%d", refresh_rate[3]);
+				break;
+			} else {
+				continue;
+			}
+		}
+		return_val = ((refresh_rate[0] * 1000) + (refresh_rate[1] * 100)
+				+ ((refresh_rate[2]) * 10) + refresh_rate[3]);
+		ui_delay(1000000);
+
+		if (return_val <= 9999) {
+			break;
+		} else {
+			PRINTF("\n\r\tInvalid Value!\n\r\tTry again...");
+			ui_delay(500000);
+			continue;
+		}
+
+	}
+	return return_val;
 }
 
 void UART_IRQHandler(void) {
