@@ -9,6 +9,7 @@ void ui_delay(int delay);
 
 int colour_change_rate_read();
 int refresh_rate_read();
+int *start_colour_read();
 
 void master_ui(void);
 void slave_ui(void);
