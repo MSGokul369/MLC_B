@@ -334,12 +334,13 @@ void master_ui(void) {
 					while (1) {
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter Start color value for RED");
+								PRINTF("\r\n\tEnter Start color value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[0] = UART_ReadByte(UART0) - 48;
+						        UART_WriteByte(UART0, start_color[0] + 48);
 								if (start_color[0] >= 0 && start_color[0] < 8) {
 									break;
 								} else {
@@ -352,12 +353,13 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF(
-										"\r\n\tEnter Start color value for GREEN");
+										"\r\n\tEnter Start color value for GREEN : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[1] = UART_ReadByte(UART0) - 48;
+						        UART_WriteByte(UART0, start_color[1] + 48);
 								if (start_color[1] >= 0 && start_color[1] < 8) {
 									break;
 								} else {
@@ -369,12 +371,13 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF(
-										"\r\n\tEnter Start color value for BLUE");
+										"\r\n\tEnter Start color value for BLUE : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								start_color[2] = UART_ReadByte(UART0) - 48;
+						        UART_WriteByte(UART0, start_color[2] + 48);
 								if (start_color[2] >= 0 && start_color[2] < 4) {
 									UART_EnableInterrupts(UART,
 											kUART_RxDataRegFullInterruptEnable
@@ -393,15 +396,15 @@ void master_ui(void) {
 					}
 				} else if (input_index == 2) {
 					while (1) {
-
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for RED");
+								PRINTF("\r\n\tEnter End color value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								end_color[0] = UART_ReadByte(UART0) - 48;
+						        UART_WriteByte(UART0, end_color[0] + 48);
 								if (end_color[0] >= 0 && end_color[0] < 8) {
 									break;
 								} else {
@@ -412,12 +415,13 @@ void master_ui(void) {
 							}
 
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for GREEN");
+								PRINTF("\r\n\tEnter End color value for GREEN : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								end_color[1] = UART_ReadByte(UART0) - 48;
+								UART_WriteByte(UART0, end_color[1] + 48);
 								if (end_color[1] >= 0 && end_color[1] < 8) {
 									break;
 								} else {
@@ -428,12 +432,13 @@ void master_ui(void) {
 							}
 
 							while (1) {
-								PRINTF("\r\n\tEnter End color value for BLUE");
+								PRINTF("\r\n\tEnter End color value for BLUE : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								end_color[2] = UART_ReadByte(UART0) - 48;
+								UART_WriteByte(UART0, end_color[2] + 48);
 								if (end_color[2] >= 0 && end_color[2] < 4) {
 									UART_EnableInterrupts(UART,
 											kUART_RxDataRegFullInterruptEnable
@@ -452,15 +457,15 @@ void master_ui(void) {
 					}
 				} else if (input_index == 3) {
 					while (1) {
-
 						while (1) {
 							while (1) {
-								PRINTF("\r\n\tEnter Resolution value for RED");
+								PRINTF("\r\n\tEnter Resolution value for RED : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								resolution[0] = UART_ReadByte(UART0) - 48;
+								UART_WriteByte(UART0, resolution[0] + 48);
 								if (resolution[0] >= 0 && resolution[0] < 8) {
 									break;
 								} else {
@@ -472,12 +477,13 @@ void master_ui(void) {
 
 							while (1) {
 								PRINTF(
-										"\r\n\tEnter Resolution value for GREEN");
+										"\r\n\tEnter Resolution value for GREEN : ");
 								while (!(kUART_RxDataRegFullFlag
 										& UART_GetStatusFlags(UART0)))
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								resolution[1] = UART_ReadByte(UART0) - 48;
+								UART_WriteByte(UART0, resolution[0] + 48);
 								if (resolution[1] >= 0 && resolution[1] < 8) {
 									break;
 								} else {
@@ -494,6 +500,7 @@ void master_ui(void) {
 									UART_ClearStatusFlags(UART0,
 											kUART_RxDataRegFullFlag);
 								resolution[2] = UART_ReadByte(UART0) - 48;
+								UART_WriteByte(UART0, resolution[2] + 48);
 								if (resolution[2] >= 0 && resolution[2] < 4) {
 									UART_EnableInterrupts(UART,
 											kUART_RxDataRegFullInterruptEnable
@@ -744,7 +751,7 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 	memset(pointer, 0, num_of_ops * sizeof(int));
 	pointer[0] = 1;
 	while (run_flag) {
-
+		PRINTF("\e[?25l");
 		PRINTF("\033[%d;%dHPress Enter to Select", x_cor, y_cor);
 		PRINTF("\033[%d;%dHArrow Keys to move cursor\r\n\n", x_cor + 1, y_cor);
 		for (int i = 0; i < num_of_ops; i++) {
