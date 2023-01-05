@@ -114,9 +114,7 @@ static void configure_device(void *pvParameters) {
 }
 
 static void generate_pattern(void *pvParameters) {
-
 	PRINTF("\033[16;25Hhello");
-
 	while (1)
 		;
 }
