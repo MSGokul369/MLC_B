@@ -299,7 +299,7 @@ void master_ui(void) {
 					while (1) {
 						PRINTF("\r\n\t444 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
-						curent_rgb_scheme_index = 2;
+						curent_rgb_scheme_index = 1;
 						//ui_delay(5000000);
 						break;
 					}
@@ -307,7 +307,7 @@ void master_ui(void) {
 					while (1) {
 						PRINTF("\r\n\t888 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
-						curent_rgb_scheme_index = 3;
+						curent_rgb_scheme_index = 1;
 						//ui_delay(5000000);
 						break;
 					}
@@ -451,12 +451,49 @@ void master_ui(void) {
 						}
 					}
 				} else if (input_index == 7) {
-					PRINTF("\r\n\tLoading Home");
-					PRINTF("\r\n\tPlease wait...");
-					UART_EnableInterrupts(UART,
-							kUART_RxDataRegFullInterruptEnable
-									| kUART_RxOverrunInterruptEnable);
-					break;
+
+					int status_check = 0;
+					int uart_read;
+
+					status_check = validation_warning(led_refresh_rate,
+							start_color, end_color, colour_change_rate,
+							current_mode_index, resolution);
+
+					if (status_check == 1) {
+						while (1) {
+							UART_DisableInterrupts(UART,
+									kUART_RxDataRegFullInterruptEnable
+											| kUART_RxOverrunInterruptEnable);
+							while (!(kUART_RxDataRegFullFlag
+									& UART_GetStatusFlags(UART0)))
+								UART_ClearStatusFlags(UART0,
+										kUART_RxDataRegFullFlag);
+							uart_read = UART_ReadByte(UART0);
+
+							if (uart_read == 13 || uart_read == 32) {
+								break;
+							} else {
+								continue;
+							}
+						}
+						if (uart_read == 13) {
+							UART_EnableInterrupts(UART,
+									kUART_RxDataRegFullInterruptEnable
+											| kUART_RxOverrunInterruptEnable);
+							break;
+						} else if (uart_read == 32) {
+							UART_EnableInterrupts(UART,
+									kUART_RxDataRegFullInterruptEnable
+											| kUART_RxOverrunInterruptEnable);
+							continue;
+						}
+					} else {
+						UART_EnableInterrupts(UART,
+								kUART_RxDataRegFullInterruptEnable
+										| kUART_RxOverrunInterruptEnable);
+						break;
+					}
+
 				} else {
 					PRINTF("\r\n\tInvalid data received");
 				}
@@ -657,7 +694,7 @@ int colour_change_rate_read() {
 	int return_val;
 
 	while (1) {
-		PRINTF("\n\r\tEdit Values :");
+		PRINTF("\033[19;9HEdit Values :");
 		PRINTF("\033[19;50H                                          ");
 		PRINTF("\033[19;50H_");
 		PRINTF("\033[19;55H_");
@@ -927,9 +964,57 @@ int* resolution_read() {
 	return resolution_read;
 }
 
-void validation_warning(int led_refresh_rate, int start_colour[3], int end_colour[3],
-		int colour_change_rate, int current_mode_index, int resolution[3]){
+int validation_warning(int led_refresh_rate, int start_colour[3],
+		int end_colour[3], int colour_change_rate, int current_mode_index,
+		int resolution[3]) {
+	int validation_flag = 0;
+	while (1) {
+		if (current_mode_index == 1) {
+			if ((start_colour[0] < end_colour[0])
+					&& (start_colour[1] < end_colour[1])
+					&& (start_colour[2] < end_colour[2])) {
+				break;
+			} else {
+				PRINTF("\r\n\tConfiguration is invalid...");
+				PRINTF("\r\n\tPress Enter to proceed ...");
+				PRINTF("\r\n\tPress Space to edit configuration ...");
+				validation_flag = 1;
+				break;
+			}
+		} else if (current_mode_index == 2) {
+			if ((start_colour[0] > end_colour[0])
+					&& (start_colour[1] > end_colour[1])
+					&& (start_colour[2] > end_colour[2])) {
+				break;
+			} else {
+				PRINTF("\r\n\tConfiguration is invalid...");
+				PRINTF("\r\n\tPress Enter to proceed ...");
+				PRINTF("\r\n\tPress Space to edit configuration ...");
+				validation_flag = 1;
+				break;
+			}
 
+		} else if (current_mode_index == 3) {
+			if ((start_colour[0] < end_colour[0])
+					&& (start_colour[1] < end_colour[1])
+					&& (start_colour[2] < end_colour[2])) {
+				break;
+			} else {
+				PRINTF("\r\n\tConfiguration is invalid...");
+				PRINTF("\r\n\tPress Enter to proceed ...");
+				PRINTF("\r\n\tPress Space to edit configuration ...");
+				validation_flag = 1;
+				break;
+			}
+		} else if (current_mode_index == 4) {
+			break;
+		} else {
+			PRINTF("\r\n\tInvalid Data");
+			break;
+		}
+	}
+
+	return validation_flag;
 }
 
 void UART_IRQHandler(void) {
