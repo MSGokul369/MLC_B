@@ -22,6 +22,8 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+
+#include "../Pattern_Generation/Pattern_Generation.h"
 #include "../UI/user_interface.h"
 
 /*******************************************
@@ -64,14 +66,15 @@ int main(void) {
 	BOARD_InitBootClocks();
 	BOARD_InitBootPeripherals();
 	BOARD_InitDebugConsole();
-
-	if (xTaskCreate(configure_device, "CONFIGURE_DEVICE", 1000, NULL, 2,
+	int com_arr[] = {1000, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 2, 1, 2};
+	auto_mode(com_arr);
+	if (xTaskCreate(generate_pattern, "CONFIGURE_DEVICE", 1000, NULL, 2,
 	NULL) != pdPASS) {
 		PRINTF("Task creation failed!.\n\t");
 		while (1)
 			;
 	}
-	if (xTaskCreate(generate_pattern, "GENERATE_PATTERN", 1000, NULL, 2,
+	if (xTaskCreate(configure_device, "GENERATE_PATTERN", 1000, NULL, 2,
 	NULL) != pdPASS) {
 		PRINTF("Task creation failed!.\n\t");
 		while (1)
@@ -85,8 +88,15 @@ int main(void) {
 
 static void configure_device(void *pvParameters) {
 	master_ui();
+	 taskYIELD ()
 }
 static void generate_pattern(void *pvParameters) {
+
+
+	int config[14] ={1000,1,7,7,3,0,0,0,1,1,1,1,1};
+
+
+	auto_mode(config);
 	PRINTF("Pattern");
 	while (1)
 		;

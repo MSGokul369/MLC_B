@@ -158,6 +158,11 @@ void BOARD_InitPins(void)
 {
     /* Port A Clock Gate Control: Clock enabled */
     CLOCK_EnableClock(kCLOCK_PortA);
+    CLOCK_EnableClock(kCLOCK_PortD);
+    PORT_SetPinMux(PORTD, 1U, kPORT_MuxAlt4);
+    PORT_SetPinMux(PORTD, 3U, kPORT_MuxAlt4);
+
+    PORT_SetPinMux(PORTD, 2U, kPORT_MuxAlt4);
 
     /* PORTA2 (pin 36) is configured as TRACE_SWO */
     PORT_SetPinMux(PORTA, 2U, kPORT_MuxAlt7);
@@ -289,6 +294,8 @@ void BOARD_InitLEDsPins(void)
     CLOCK_EnableClock(kCLOCK_PortB);
     /* Port E Clock Gate Control: Clock enabled */
     CLOCK_EnableClock(kCLOCK_PortE);
+
+
 
     gpio_pin_config_t LED_BLUE_config = {
         .pinDirection = kGPIO_DigitalOutput,
