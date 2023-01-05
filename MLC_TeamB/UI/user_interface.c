@@ -571,8 +571,12 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			}
 		} else if (current_mode_index == 4) {
 			PRINTF("\r\n\tSuccess");
+			ui_delay(5000000);
+			break;
 		} else {
 			PRINTF("\r\n\tInvalid Data");
+			ui_delay(5000000);
+			break;
 		}
 	}
 }
@@ -921,6 +925,11 @@ int* resolution_read() {
 		break;
 	}
 	return resolution_read;
+}
+
+void validation_warning(int led_refresh_rate, int start_colour[3], int end_colour[3],
+		int colour_change_rate, int current_mode_index, int resolution[3]){
+
 }
 
 void UART_IRQHandler(void) {
