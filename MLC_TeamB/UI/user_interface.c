@@ -1,7 +1,21 @@
-#include "../UI/user_interface.h"
+/**
+ * @file
+ * @brief
+ *
+ *
+ *
+ * @note
+ *
+ * Revision History:
+ * 	-060123 MSG : Creation Date
+ */
+
+/*System includes.*/
 #include <stdio.h>
 #include "fsl_debug_console.h"
 #include "fsl_uart.h"
+
+#include "../UI/user_interface.h"
 
 /* UART instance and clock */
 #define UART            UART0
@@ -16,8 +30,72 @@
 uint8_t tx_buffer = 0;
 uint8_t valid_data = 1;
 
-void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
-		int colour_change_rate, int current_mode_index, int resolution[3]) {
+void boot_screen(void) {
+	PRINTF("\e[1;1H\e[2J");
+	PRINTF("\e[?25l");
+	PRINTF("\033[1m");
+	PRINTF(
+			"\n\r                                                                      ");
+	PRINTF(
+			"\n\r                                                                      ");
+	PRINTF(
+			"\n\r                                                         .:           ");
+	PRINTF(
+			"\n\r                                                        :%%+           ");
+	PRINTF(
+			"\n\r                          .:-==++++==-:.               =@#            ");
+	PRINTF(
+			"\n\r                      :+#%%@@%%##***##%%@@@@#*=-.        +@%%            _____      _      _   _       ");
+	PRINTF(
+			"\n\r                    =%%@%%*=:           .:-+*%%@@%%+-    *@%%.           |  __ \\    | |    | | | |      ");
+	PRINTF(
+			"\n\r                  =%%@%%=                     .-+%%@@-.#@@-            | |__) |_ _| | ___| |_| |_ ___ ");
+	PRINTF(
+			"\n\r                .#@%%=     .*%%@%%+.    .*%%@%%+.    :-:%%@@*             |  ___/ _` | |/ _ \\ __| __/ _ \\");
+	PRINTF(
+			"\n\r               :%%@#.      %%@@@@@*    #@@@@@*     -%%@@#:%%=           | |  | (_| | |  __/ |_| ||  __/");
+	PRINTF(
+			"\n\r              -%%@+        =%%@@@%%-    =%%@@@%%-    +@@@%%.:%%@%%-         |_|   \\__,_|_|\\___|\\__|\\__\\___|");
+	PRINTF(
+			"\n\r             -@@+           :-:        :-:     *@@@@:   *@@=   ");
+	PRINTF(
+			"\n\r            :%%@*      .                      .#@@@@=     *@@:");
+	PRINTF(
+			"\n\r           .%%@#     +%%@@%%=                  :%%@@@@*       %%@*         \tMulticolor LED Controller");
+	PRINTF(
+			"\n\r           #@%%.    =@@@@@@:                -%%@@@@#        #@%%         \tVersion 2.0");
+	PRINTF(
+			"\n\r          =@@-      *@@@%%+                +@@@@@%%.        %%@#         ");
+	PRINTF(
+			"\n\r         .%%@#        .::          .::::. *@@@@@@-        *@@:         ");
+	PRINTF(
+			"\n\r         =@@:                  =#%%@@@@@-+@@@@@@+       :#@%%-          ");
+	PRINTF(
+			"\n\r         #@%%     .-=-.       :%%@%%+:.   .@@@@@@*:+====*%%@%%+.           ");
+	PRINTF(
+			"\n\r         #@%%    =@@@@@+     .%%@#.      =@@@@@* *##%%##*=:              ");
+	PRINTF(
+			"\n\r         *@@.   *@@@@@#     #@%%.       *@@@%%=                         ");
+	PRINTF(
+			"\n\r         .%%@*    +#%%#+     -@@+       ::-=+:                          ");
+	PRINTF(
+			"\n\r          -%%@*.            #@%%      +@@@@*                            ");
+	PRINTF(
+			"\n\r           .#@%%+.         *@%%:     -@@@@@@:                           from");
+	PRINTF(
+			"\n\r             -#@@*=::.:-+%%@#:     :%%@@@@@+                            Digital Core Technologies");
+	PRINTF(
+			"\n\r               .=#%%@@@@@%%*-      +@@@@@%%=                             ");
+	PRINTF(
+			"\n\r                    ...        -%%@@%%#+:                               ");
+	PRINTF(
+			"\n\r                                                                      ");
+	PRINTF("\033[0m");
+	PRINTF("\n\r\tPress Space to continue...");
+}
+
+void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3]) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
@@ -26,7 +104,7 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
 	PRINTF(
-			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
@@ -38,10 +116,10 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	PRINTF("\t\t\t\t Current Configurations:- \r\n");
 	PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n", led_refresh_rate);
 	PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n",
-			start_colour[0], start_colour[1], start_colour[2]);
+			start_color[0], start_color[1], start_color[2]);
 	PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n",
-			end_colour[0], end_colour[1], end_colour[2]);
-	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", colour_change_rate);
+			end_color[0], end_color[1], end_color[2]);
+	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", color_change_rate);
 
 	switch (current_mode_index) {
 	case 1:
@@ -72,9 +150,9 @@ void ui_homescreen(int led_refresh_rate, int start_colour[3], int end_colour[3],
 void ui_homescreen_slave() {
 
 	int current_mode_index = 1;
-	int colour_change_rate = 1;
+	int color_change_rate = 1;
 	int led_refresh_rate = 1;
-	int start_colour[3] = { 0, 0, 0 }, end_colour[3] = { 0, 0, 0 },
+	int start_color[3] = { 0, 0, 0 }, end_color[3] = { 0, 0, 0 },
 			resolution[3] = { 1, 1, 1 };
 
 	PRINTF("\e[1;1H\e[2J");
@@ -85,7 +163,7 @@ void ui_homescreen_slave() {
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
 	PRINTF(
-			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 1.0\r\n");
+			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
@@ -97,10 +175,10 @@ void ui_homescreen_slave() {
 	PRINTF("\t\t\t\t Current Configurations:- \r\n");
 	PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n", led_refresh_rate);
 	PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n",
-			start_colour[0], start_colour[1], start_colour[2]);
+			start_color[0], start_color[1], start_color[2]);
 	PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n",
-			end_colour[0], end_colour[1], end_colour[2]);
-	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", colour_change_rate);
+			end_color[0], end_color[1], end_color[2]);
+	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", color_change_rate);
 
 	switch (current_mode_index) {
 	case 1:
@@ -127,7 +205,7 @@ void ui_homescreen_slave() {
 void ui_rgb_code_scheme(int current_rgb_scheme_index) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
+	PRINTF("\t\t\t\t Palette       Version 2.0 \r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
@@ -166,12 +244,12 @@ void ui_rgb_code_scheme(int current_rgb_scheme_index) {
 
 }
 
-void ui_configure_colour_pattern(int led_refresh_rate, int start_colour[3],
-		int end_colour[3], int colour_change_rate, int current_mode_index,
+void ui_configure_color_pattern(int led_refresh_rate, int start_color[3],
+		int end_color[3], int color_change_rate, int current_mode_index,
 		int resolution[3]) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
+	PRINTF("\t\t\t\t Palette       Version 2.0 \r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
@@ -180,13 +258,13 @@ void ui_configure_colour_pattern(int led_refresh_rate, int start_colour[3],
 	PRINTF("\r\n");
 	PRINTF("\r\n");
 	PRINTF("\r\n");
-	PRINTF("\t1.\t\t\t\t\t\t:\t%d %d %d RGB \r\n", start_colour[0],
-			start_colour[1], start_colour[2]);
-	PRINTF("\t2.\t\t\t\t\t\t:\t%d %d %d RGB \r\n", end_colour[0], end_colour[1],
-			end_colour[2]);
+	PRINTF("\t1.\t\t\t\t\t\t:\t%d %d %d RGB \r\n", start_color[0],
+			start_color[1], start_color[2]);
+	PRINTF("\t2.\t\t\t\t\t\t:\t%d %d %d RGB \r\n", end_color[0], end_color[1],
+			end_color[2]);
 	PRINTF("\t3.\t\t\t\t\t\t:\t%d %d %d RGB \r\n", resolution[0], resolution[1],
 			resolution[2]);
-	PRINTF("\t4.\t\t\t\t\t\t:\t%d \r\n", colour_change_rate);
+	PRINTF("\t4.\t\t\t\t\t\t:\t%d \r\n", color_change_rate);
 	PRINTF("\t5.\t\t\t\t\t\t:\t%d \r\n", led_refresh_rate);
 	switch (current_mode_index) {
 	case 1:
@@ -212,7 +290,7 @@ void ui_modes(int current_mode_index) {
 
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Palette       Version 1.0 \r\n");
+	PRINTF("\t\t\t\t Palette       Version 2.0 \r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
@@ -247,10 +325,31 @@ void ui_delay(int delay) {
 }
 
 void master_ui(void) {
+
+	boot_screen();
+	while (1) {
+		int uart_read;
+		UART_DisableInterrupts(UART,
+				kUART_RxDataRegFullInterruptEnable
+						| kUART_RxOverrunInterruptEnable);
+		while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+			UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+		uart_read = UART_ReadByte(UART0);
+
+		if (uart_read == 32) {
+			UART_EnableInterrupts(UART,
+					kUART_RxDataRegFullInterruptEnable
+							| kUART_RxOverrunInterruptEnable);
+			break;
+		} else {
+			continue;
+		}
+	}
+
 	int input_index;
 	int current_mode_index = 1;
 	int curent_rgb_scheme_index = 1;
-	int colour_change_rate = 1;
+	int color_change_rate = 1;
 	int led_refresh_rate = 1;
 	int start_color[3] = { 0, 0, 0 }, end_color[3] = { 0, 0, 0 },
 			resolution[3] = { 1, 1, 1 };
@@ -260,7 +359,7 @@ void master_ui(void) {
 
 	while (1) {
 		ui_homescreen(led_refresh_rate, start_color, end_color,
-				colour_change_rate, current_mode_index, resolution);
+				color_change_rate, current_mode_index, resolution);
 		while (1) {
 			input_index = 0;
 
@@ -283,9 +382,9 @@ void master_ui(void) {
 			while (1) {
 				ui_rgb_code_scheme(curent_rgb_scheme_index);
 
-				char colour_scheme_menu[4][30] = { "332 RGB", "444 RGB",
+				char color_scheme_menu[4][30] = { "332 RGB", "444 RGB",
 						"888 RGB", "Home" };
-				input_index = arrow_key_navigate(colour_scheme_menu, 4, 9, 10);
+				input_index = arrow_key_navigate(color_scheme_menu, 4, 9, 10);
 
 				if (input_index == 1) {
 					while (1) {
@@ -300,7 +399,7 @@ void master_ui(void) {
 						PRINTF("\r\n\t444 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
 						curent_rgb_scheme_index = 1;
-						//ui_delay(5000000);
+						ui_delay(5000000);
 						break;
 					}
 				} else if (input_index == 3) {
@@ -308,7 +407,7 @@ void master_ui(void) {
 						PRINTF("\r\n\t888 scheme unavailable!");
 						PRINTF("\r\n\tPlease wait...");
 						curent_rgb_scheme_index = 1;
-						//ui_delay(5000000);
+						ui_delay(5000000);
 						break;
 					}
 
@@ -322,20 +421,20 @@ void master_ui(void) {
 			}
 		} else if (input_index == 2) {
 			while (1) {
-				ui_configure_colour_pattern(led_refresh_rate, start_color,
-						end_color, colour_change_rate, current_mode_index,
+				ui_configure_color_pattern(led_refresh_rate, start_color,
+						end_color, color_change_rate, current_mode_index,
 						resolution);
 
-				char colour_scheme_menu[7][30] = { "Start color", "End color",
+				char color_scheme_menu[7][30] = { "Start color", "End color",
 						"Color change resolution", "Color change rate",
 						"LED refresh rate", "Mode", "Home", };
-				input_index = arrow_key_navigate(colour_scheme_menu, 7, 8, 10);
+				input_index = arrow_key_navigate(color_scheme_menu, 7, 8, 10);
 				UART_DisableInterrupts(UART,
 						kUART_RxDataRegFullInterruptEnable
 								| kUART_RxOverrunInterruptEnable);
 				if (input_index == 1) {
 					while (1) {
-						start_pointer = start_colour_read();
+						start_pointer = start_color_read();
 						for (int i = 0; i <= 2; i++) {
 							start_color[i] = start_pointer[i];
 						}
@@ -346,7 +445,7 @@ void master_ui(void) {
 					}
 				} else if (input_index == 2) {
 					while (1) {
-						end_pointer = end_colour_read();
+						end_pointer = end_color_read();
 						for (int i = 0; i <= 2; i++) {
 							end_color[i] = end_pointer[i];
 						}
@@ -368,9 +467,8 @@ void master_ui(void) {
 					}
 				} else if (input_index == 4) {
 					while (1) {
-						colour_change_rate = colour_change_rate_read();
-						if (colour_change_rate > 0
-								&& colour_change_rate <= 500) {
+						color_change_rate = color_change_rate_read();
+						if (color_change_rate > 0 && color_change_rate <= 500) {
 							UART_EnableInterrupts(UART,
 									kUART_RxDataRegFullInterruptEnable
 											| kUART_RxOverrunInterruptEnable);
@@ -456,7 +554,7 @@ void master_ui(void) {
 					int uart_read;
 
 					status_check = validation_warning(led_refresh_rate,
-							start_color, end_color, colour_change_rate,
+							start_color, end_color, color_change_rate,
 							current_mode_index, resolution);
 
 					if (status_check == 1) {
@@ -501,10 +599,10 @@ void master_ui(void) {
 
 		} else if (input_index == 3) {
 			start_stop(led_refresh_rate, start_color, end_color,
-					colour_change_rate, current_mode_index, resolution);
+					color_change_rate, current_mode_index, resolution);
 		} else if (input_index == 4) {
 			play_pause(led_refresh_rate, start_color, end_color,
-					colour_change_rate, current_mode_index, resolution);
+					color_change_rate, current_mode_index, resolution);
 		} else {
 			PRINTF("\r\n\tInvalid data received!");
 			ui_delay(5000000);
@@ -513,13 +611,13 @@ void master_ui(void) {
 	}
 }
 
-void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
-		int colour_change_rate, int current_mode_index, int resolution[3]) {
+void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3]) {
 	while (1) {
 		if (current_mode_index == 1) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -529,9 +627,9 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 				break;
 			}
 		} else if (current_mode_index == 2) {
-			if ((start_colour[0] > end_colour[0])
-					&& (start_colour[1] > end_colour[1])
-					&& (start_colour[2] > end_colour[2])) {
+			if ((start_color[0] > end_color[0])
+					&& (start_color[1] > end_color[1])
+					&& (start_color[2] > end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -542,9 +640,9 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			}
 
 		} else if (current_mode_index == 3) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -566,13 +664,13 @@ void start_stop(int led_refresh_rate, int start_colour[3], int end_colour[3],
 	}
 }
 
-void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
-		int colour_change_rate, int current_mode_index, int resolution[3]) {
+void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3]) {
 	while (1) {
 		if (current_mode_index == 1) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -582,9 +680,9 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 				break;
 			}
 		} else if (current_mode_index == 2) {
-			if ((start_colour[0] > end_colour[0])
-					&& (start_colour[1] > end_colour[1])
-					&& (start_colour[2] > end_colour[2])) {
+			if ((start_color[0] > end_color[0])
+					&& (start_color[1] > end_color[1])
+					&& (start_color[2] > end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -595,9 +693,9 @@ void play_pause(int led_refresh_rate, int start_colour[3], int end_colour[3],
 			}
 
 		} else if (current_mode_index == 3) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				PRINTF("\r\n\tSuccess");
 				ui_delay(5000000);
 				break;
@@ -689,8 +787,8 @@ int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) 
 	return ret + 1;
 }
 
-int colour_change_rate_read() {
-	int colour_change_rate[3];
+int color_change_rate_read() {
+	int color_change_rate[3];
 	int return_val;
 
 	while (1) {
@@ -702,9 +800,9 @@ int colour_change_rate_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			colour_change_rate[0] = UART_ReadByte(UART0) - 48;
-			if ((colour_change_rate[0] >= 0) && (colour_change_rate[0] < 10)) {
-				PRINTF("\033[19;50H%d", colour_change_rate[0]);
+			color_change_rate[0] = UART_ReadByte(UART0) - 48;
+			if ((color_change_rate[0] >= 0) && (color_change_rate[0] < 10)) {
+				PRINTF("\033[19;50H%d", color_change_rate[0]);
 				break;
 			} else {
 				continue;
@@ -713,9 +811,9 @@ int colour_change_rate_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			colour_change_rate[1] = UART_ReadByte(UART0) - 48;
-			if ((colour_change_rate[1] >= 0) && (colour_change_rate[1] < 10)) {
-				PRINTF("\033[19;55H%d", colour_change_rate[1]);
+			color_change_rate[1] = UART_ReadByte(UART0) - 48;
+			if ((color_change_rate[1] >= 0) && (color_change_rate[1] < 10)) {
+				PRINTF("\033[19;55H%d", color_change_rate[1]);
 				break;
 			} else {
 				continue;
@@ -724,16 +822,16 @@ int colour_change_rate_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			colour_change_rate[2] = UART_ReadByte(UART0) - 48;
-			if ((colour_change_rate[2] >= 0) && (colour_change_rate[2] < 10)) {
-				PRINTF("\033[19;60H%d", colour_change_rate[2]);
+			color_change_rate[2] = UART_ReadByte(UART0) - 48;
+			if ((color_change_rate[2] >= 0) && (color_change_rate[2] < 10)) {
+				PRINTF("\033[19;60H%d", color_change_rate[2]);
 				break;
 			} else {
 				continue;
 			}
 		}
-		return_val = ((colour_change_rate[0] * 100)
-				+ (colour_change_rate[1] * 10) + (colour_change_rate[2]));
+		return_val = ((color_change_rate[0] * 100) + (color_change_rate[1] * 10)
+				+ (color_change_rate[2]));
 		ui_delay(1000000);
 
 		if (return_val <= 500) {
@@ -820,8 +918,8 @@ int refresh_rate_read() {
 	return return_val;
 }
 
-int* start_colour_read() {
-	static int start_colour_read[3];
+int* start_color_read() {
+	static int start_color_read[3];
 
 	while (1) {
 		PRINTF("\n\r\tEdit Values :");
@@ -832,9 +930,9 @@ int* start_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			start_colour_read[0] = UART_ReadByte(UART0) - 48;
-			if ((start_colour_read[0] >= 0) && (start_colour_read[0] <= 7)) {
-				PRINTF("\033[19;50H%d", start_colour_read[0]);
+			start_color_read[0] = UART_ReadByte(UART0) - 48;
+			if ((start_color_read[0] >= 0) && (start_color_read[0] <= 7)) {
+				PRINTF("\033[19;50H%d", start_color_read[0]);
 				break;
 			} else {
 				continue;
@@ -843,9 +941,9 @@ int* start_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			start_colour_read[1] = UART_ReadByte(UART0) - 48;
-			if ((start_colour_read[1] >= 0) && (start_colour_read[1] <= 7)) {
-				PRINTF("\033[19;55H%d", start_colour_read[1]);
+			start_color_read[1] = UART_ReadByte(UART0) - 48;
+			if ((start_color_read[1] >= 0) && (start_color_read[1] <= 7)) {
+				PRINTF("\033[19;55H%d", start_color_read[1]);
 				break;
 			} else {
 				continue;
@@ -854,9 +952,9 @@ int* start_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			start_colour_read[2] = UART_ReadByte(UART0) - 48;
-			if ((start_colour_read[2] >= 0) && (start_colour_read[2] <= 3)) {
-				PRINTF("\033[19;60H%d", start_colour_read[2]);
+			start_color_read[2] = UART_ReadByte(UART0) - 48;
+			if ((start_color_read[2] >= 0) && (start_color_read[2] <= 3)) {
+				PRINTF("\033[19;60H%d", start_color_read[2]);
 				break;
 			} else {
 				continue;
@@ -865,11 +963,11 @@ int* start_colour_read() {
 		ui_delay(1000000);
 		break;
 	}
-	return start_colour_read;
+	return start_color_read;
 }
 
-int* end_colour_read() {
-	static int end_colour_read[3];
+int* end_color_read() {
+	static int end_color_read[3];
 
 	while (1) {
 		PRINTF("\n\r\tEdit Values :");
@@ -880,9 +978,9 @@ int* end_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			end_colour_read[0] = UART_ReadByte(UART0) - 48;
-			if ((end_colour_read[0] >= 0) && (end_colour_read[0] <= 7)) {
-				PRINTF("\033[19;50H%d", end_colour_read[0]);
+			end_color_read[0] = UART_ReadByte(UART0) - 48;
+			if ((end_color_read[0] >= 0) && (end_color_read[0] <= 7)) {
+				PRINTF("\033[19;50H%d", end_color_read[0]);
 				break;
 			} else {
 				continue;
@@ -891,9 +989,9 @@ int* end_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			end_colour_read[1] = UART_ReadByte(UART0) - 48;
-			if ((end_colour_read[1] >= 0) && (end_colour_read[1] <= 7)) {
-				PRINTF("\033[19;55H%d", end_colour_read[1]);
+			end_color_read[1] = UART_ReadByte(UART0) - 48;
+			if ((end_color_read[1] >= 0) && (end_color_read[1] <= 7)) {
+				PRINTF("\033[19;55H%d", end_color_read[1]);
 				break;
 			} else {
 				continue;
@@ -902,9 +1000,9 @@ int* end_colour_read() {
 		while (1) {
 			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
 				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-			end_colour_read[2] = UART_ReadByte(UART0) - 48;
-			if ((end_colour_read[2] >= 0) && (end_colour_read[2] <= 3)) {
-				PRINTF("\033[19;60H%d", end_colour_read[2]);
+			end_color_read[2] = UART_ReadByte(UART0) - 48;
+			if ((end_color_read[2] >= 0) && (end_color_read[2] <= 3)) {
+				PRINTF("\033[19;60H%d", end_color_read[2]);
 				break;
 			} else {
 				continue;
@@ -913,7 +1011,7 @@ int* end_colour_read() {
 		ui_delay(1000000);
 		break;
 	}
-	return end_colour_read;
+	return end_color_read;
 }
 
 int* resolution_read() {
@@ -964,15 +1062,15 @@ int* resolution_read() {
 	return resolution_read;
 }
 
-int validation_warning(int led_refresh_rate, int start_colour[3],
-		int end_colour[3], int colour_change_rate, int current_mode_index,
+int validation_warning(int led_refresh_rate, int start_color[3],
+		int end_color[3], int color_change_rate, int current_mode_index,
 		int resolution[3]) {
 	int validation_flag = 0;
 	while (1) {
 		if (current_mode_index == 1) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				break;
 			} else {
 				PRINTF("\r\n\tConfiguration is invalid...");
@@ -982,9 +1080,9 @@ int validation_warning(int led_refresh_rate, int start_colour[3],
 				break;
 			}
 		} else if (current_mode_index == 2) {
-			if ((start_colour[0] > end_colour[0])
-					&& (start_colour[1] > end_colour[1])
-					&& (start_colour[2] > end_colour[2])) {
+			if ((start_color[0] > end_color[0])
+					&& (start_color[1] > end_color[1])
+					&& (start_color[2] > end_color[2])) {
 				break;
 			} else {
 				PRINTF("\r\n\tConfiguration is invalid...");
@@ -995,9 +1093,9 @@ int validation_warning(int led_refresh_rate, int start_colour[3],
 			}
 
 		} else if (current_mode_index == 3) {
-			if ((start_colour[0] < end_colour[0])
-					&& (start_colour[1] < end_colour[1])
-					&& (start_colour[2] < end_colour[2])) {
+			if ((start_color[0] < end_color[0])
+					&& (start_color[1] < end_color[1])
+					&& (start_color[2] < end_color[2])) {
 				break;
 			} else {
 				PRINTF("\r\n\tConfiguration is invalid...");

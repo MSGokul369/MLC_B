@@ -7,7 +7,7 @@
  * @note
  *
  * Revision History:
- * 	-161220 MSG : Creation Date
+ * 	-161222 MSG : Creation Date
  */
 
 /*System includes.*/
@@ -19,11 +19,15 @@
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
 #include "fsl_uart.h"
+#include "timers.h"
+
+/*Program includes.*/
+#include "../UI/user_interface.h"
+
+/*RTOS includes.*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "timers.h"
-#include "../UI/user_interface.h"
 
 /*******************************************
  * Const and Macro Defines
