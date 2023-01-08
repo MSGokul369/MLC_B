@@ -20,7 +20,7 @@ void boot_screen(void);
  *
  */
 void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]);
+		int color_change_rate, int current_mode_index, int resolution[3], int up_down_count);
 /*!
  * @brief Calls UI home screen and displays current configuration during slave mode operation.
  *
@@ -36,12 +36,12 @@ void ui_rgb_code_scheme(int curent_rgb_scheme_index);
  *
  */
 void ui_configure_color_pattern(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]);
+		int color_change_rate, int current_mode_index, int resolution[3], int up_down_count);
 /*!
  * @brief Calls mode selection home screen
  *
  */
-void ui_modes(int current_mode_index);
+void ui_modes(int current_mode_index, int up_down_count);
 /*!
  * @brief Set delay
  *
@@ -72,6 +72,8 @@ int *end_color_read();
  *
  */
 int *resolution_read();
+
+int up_down_count_read(void);
 /*!
  * @brief Call UI and subsequent functions in Master mode.
  *
