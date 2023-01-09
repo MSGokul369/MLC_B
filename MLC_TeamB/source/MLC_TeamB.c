@@ -66,14 +66,12 @@
 /***********************************
  * Private Prototypes
  ***********************************/
-static void configure_device(void *pvParameters);
 static void generate_pattern(void *pvParameters);
 
 /*
  * @brief   Application entry point.
  */
 int main(void) {
-
 
 	/* Init board hardware. */
 	BOARD_InitBootPins();
@@ -87,34 +85,35 @@ int main(void) {
 					| kUART_RxOverrunInterruptEnable);
 	EnableIRQ(UART_IRQn);
 
-	if (xTaskCreate(configure_device, "CONFIGURE_DEVICE", 1000, NULL, 2,
-	NULL) != pdPASS) {
-		PRINTF("Task creation failed!.\n\t");
-		while (1)
-			;
-	}
-	if (xTaskCreate(generate_pattern, "GENERATE_PATTERN", 1000, NULL, 2,
-	NULL) != pdPASS) {
-		PRINTF("Task creation failed!.\n\t");
-		while (1)
-			;
-	}
-	vTaskStartScheduler();
-	while (1)
-		;
-	return 0;
-}
-
-static void configure_device(void *pvParameters) {
-
 	uint32_t master_slave_flag;
 	master_slave_flag = GPIO_PinRead( GPIOD, 0);
-	//PRINTF("%d", master_slave_flag);
+
 	if (master_slave_flag == 1) {
-		master_ui();
-	} else {
-		slave_ui();
+		if (xTaskCreate(master_ui, "MASTER_UI", 1000, NULL, 2,
+		NULL) != pdPASS) {
+			PRINTF("Task creation failed!.\n\t");
+			while (1)
+				;
+		}
+	} else if (master_slave_flag == 0) {
+		if (xTaskCreate(slave_ui, "SLAVE_UI", 1000, NULL, 2,
+		NULL) != pdPASS) {
+			PRINTF("Task creation failed!.\n\t");
+			while (1)
+				;
+		}
+		if (xTaskCreate(generate_pattern, "GENERATE_PATTERN", 1000, NULL, 2,
+		NULL) != pdPASS) {
+			PRINTF("Task creation failed!.\n\t");
+			while (1)
+				;
+		}
 	}
+		vTaskStartScheduler();
+		while (1)
+			;
+		return 0;
+
 }
 
 static void generate_pattern(void *pvParameters) {

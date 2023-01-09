@@ -169,7 +169,7 @@ void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
 void ui_homescreen_slave() {
 
 	boot_screen();
-	ui_delay(500000);
+	ui_delay(5000000);
 
 	int current_mode_index = 1;
 	int color_change_rate = 1;
@@ -347,7 +347,7 @@ void ui_delay(int delay) {
 	}
 }
 
-void master_ui(void) {
+void master_ui(void *pvParameters) {
 
 	boot_screen();
 	while (1) {
@@ -400,10 +400,7 @@ void master_ui(void) {
 				continue;
 			}
 		}
-		/*PRINTF("\r\n\tSelected Index : %c", input_index);
-		 PRINTF("\r\n\tPlease wait...");
-		 ui_delay(5000000);
-		 */
+
 		if (input_index == 1) {
 			while (1) {
 				ui_rgb_code_scheme(curent_rgb_scheme_index);
@@ -789,7 +786,7 @@ int play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
 	return process_status;
 }
 
-void slave_ui() {
+void slave_ui(void *pvParameters) {
 	while (1) {
 		ui_homescreen_slave();
 		while (1)

@@ -78,13 +78,13 @@ int up_down_count_read(void);
  * @brief Call UI and subsequent functions in Master mode.
  *
  */
-void master_ui(void);
+void master_ui(void *pvParameters);
 
 /*!
  * @brief Call UI and subsequent functions in Slave mode
  *
  */
-void slave_ui(void);
+void slave_ui(void *pvParameters);
 
 /*!
  * @brief Send Start and Stop commands along with configuration during inter-task communication to generate pattern
