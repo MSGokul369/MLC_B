@@ -67,7 +67,7 @@ int main(void) {
 	BOARD_InitBootPeripherals();
 	BOARD_InitDebugConsole();
 	int com_arr[] = {1000, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 2, 1, 2};
-	auto_mode(com_arr);
+	//auto_mode(com_arr);
 	if (xTaskCreate(generate_pattern, "CONFIGURE_DEVICE", 1000, NULL, 2,
 	NULL) != pdPASS) {
 		PRINTF("Task creation failed!.\n\t");
@@ -93,10 +93,10 @@ static void configure_device(void *pvParameters) {
 static void generate_pattern(void *pvParameters) {
 
 
-	int config[14] ={1000,1,7,7,3,0,0,0,1,1,1,1,1};
+	int config[14] ={1000,1,0,0,0,7,7,3,1,1,1,3,1};
 
 
-	auto_mode(config);
+	manual_mode(config);
 	PRINTF("Pattern");
 	while (1)
 		;
