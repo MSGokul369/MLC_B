@@ -20,7 +20,7 @@ void boot_screen(void);
  *
  */
 void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3], int up_down_count);
+		int color_change_rate, int current_mode_index, int resolution[3], int up_down_count, int process_status);
 /*!
  * @brief Calls UI home screen and displays current configuration during slave mode operation.
  *
@@ -90,15 +90,15 @@ void slave_ui(void);
  * @brief Send Start and Stop commands along with configuration during inter-task communication to generate pattern
  *
  */
-void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]);
+int start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3], int process_status);
 
 /*!
  * @brief Send Play and Pause commands along with configuration during inter-task communication to generate pattern
  *
  */
-void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]);
+int play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3], int process_status);
 
 /*!
  * @brief Verification of configuration and displays warning for invalid configurations.

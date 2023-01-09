@@ -98,7 +98,8 @@ void boot_screen(void) {
 }
 
 void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3], int up_down_count) {
+		int color_change_rate, int current_mode_index, int resolution[3],
+		int up_down_count, int process_status) {
 	PRINTF("\e[1;1H\e[2J");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
@@ -106,14 +107,28 @@ void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
 	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
 	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
 	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
-	PRINTF("\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
+	PRINTF(
+			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Device Mode\t:\tMaster \r\n");
 	PRINTF("\t\t\t\t Slave Status\t:\tOnline \r\n");
-	PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
+	switch (process_status) {
+	case 0:
+		PRINTF("\t\t\t\t Process Status\t:\tStopped \r\n");
+		break;
+	case 1:
+		PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
+		break;
+	case 2:
+		PRINTF("\t\t\t\t Process Status\t:\tPaused \r\n");
+		break;
+	default:
+		PRINTF("\t\t\t\t Process Status\t:\tInvalid \r\n");
+		break;
+	}
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Current Configurations:- \r\n");
 	PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n", led_refresh_rate);
@@ -131,7 +146,8 @@ void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
 		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-DOWN \r\n");
 		break;
 	case 3:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN | Count : %d \r\n", up_down_count);
+		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN | Count : %d \r\n",
+				up_down_count);
 		break;
 	case 4:
 		PRINTF("\t\t\t\t Mode\t\t\t:\tManual \r\n");
@@ -308,7 +324,8 @@ void ui_modes(int current_mode_index, int up_down_count) {
 		PRINTF("\tCurrent Mode - Auto: DOWN\r\n");
 		break;
 	case 3:
-		PRINTF("\tCurrent Mode - Auto: UP/DOWN | Count : %d\r\n", up_down_count);
+		PRINTF("\tCurrent Mode - Auto: UP/DOWN | Count : %d\r\n",
+				up_down_count);
 		break;
 	case 4:
 		PRINTF("\tCurrent Mode - Manual\r\n");
@@ -363,10 +380,12 @@ void master_ui(void) {
 	int *end_pointer;
 	int *resolution_pointer;
 	int up_down_count;
+	int process_status = 0;
 
 	while (1) {
 		ui_homescreen(led_refresh_rate, start_color, end_color,
-				color_change_rate, current_mode_index, resolution, up_down_count);
+				color_change_rate, current_mode_index, resolution,
+				up_down_count, process_status);
 		while (1) {
 			input_index = 0;
 
@@ -612,11 +631,14 @@ void master_ui(void) {
 			}
 
 		} else if (input_index == 3) {
-			start_stop(led_refresh_rate, start_color, end_color,
-					color_change_rate, current_mode_index, resolution);
+			process_status = start_stop(led_refresh_rate, start_color,
+					end_color, color_change_rate, current_mode_index,
+					resolution, process_status);
+
 		} else if (input_index == 4) {
-			play_pause(led_refresh_rate, start_color, end_color,
-					color_change_rate, current_mode_index, resolution);
+			process_status = play_pause(led_refresh_rate, start_color,
+					end_color, color_change_rate, current_mode_index,
+					resolution, process_status);
 		} else {
 			PRINTF("\r\n\tInvalid data received!");
 			ui_delay(5000000);
@@ -625,15 +647,21 @@ void master_ui(void) {
 	}
 }
 
-void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]) {
+int start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3],
+		int process_status) {
 	while (1) {
 		if (current_mode_index == 1) {
 			if ((start_color[0] < end_color[0])
 					&& (start_color[1] < end_color[1])
 					&& (start_color[2] < end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 1;
+				} else if (process_status == 1) {
+					process_status = 0;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -644,11 +672,16 @@ void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 			if ((start_color[0] > end_color[0])
 					&& (start_color[1] > end_color[1])
 					&& (start_color[2] > end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 1;
+				} else if (process_status == 1) {
+					process_status = 0;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
 				break;
 			} else {
-				PRINTF("\r\n\tInvalid Configuration");
+				//PRINTF("\r\n\tInvalid Configuration");
 				ui_delay(5000000);
 				break;
 			}
@@ -657,8 +690,14 @@ void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 			if ((start_color[0] < end_color[0])
 					&& (start_color[1] < end_color[1])
 					&& (start_color[2] < end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 1;
+				} else if (process_status == 1) {
+					process_status = 0;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
+				//PRINTF("\r\n\t%d", process_status);
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -669,6 +708,7 @@ void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 		} else if (current_mode_index == 4) {
 			PRINTF("\r\n\tSuccess");
 			ui_delay(5000000);
+			process_status = 1;
 			break;
 		} else {
 			PRINTF("\r\n\tInvalid Data");
@@ -676,17 +716,25 @@ void start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 			break;
 		}
 	}
+
+	return process_status;
 }
 
-void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3]) {
+int play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
+		int color_change_rate, int current_mode_index, int resolution[3],
+		int process_status) {
 	while (1) {
 		if (current_mode_index == 1) {
 			if ((start_color[0] < end_color[0])
 					&& (start_color[1] < end_color[1])
 					&& (start_color[2] < end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 0;
+				} else if (process_status == 1) {
+					process_status = 2;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -697,8 +745,13 @@ void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
 			if ((start_color[0] > end_color[0])
 					&& (start_color[1] > end_color[1])
 					&& (start_color[2] > end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 0;
+				} else if (process_status == 1) {
+					process_status = 2;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -710,8 +763,13 @@ void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
 			if ((start_color[0] < end_color[0])
 					&& (start_color[1] < end_color[1])
 					&& (start_color[2] < end_color[2])) {
-				PRINTF("\r\n\tSuccess");
-				ui_delay(5000000);
+				if (process_status == 0) {
+					process_status = 0;
+				} else if (process_status == 1) {
+					process_status = 2;
+				} else if (process_status == 2) {
+					process_status = 1;
+				}
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Configuration");
@@ -728,6 +786,7 @@ void play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
 			break;
 		}
 	}
+	return process_status;
 }
 
 void slave_ui() {
