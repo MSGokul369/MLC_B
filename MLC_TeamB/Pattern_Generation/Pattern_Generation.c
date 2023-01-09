@@ -106,25 +106,19 @@ int auto_mode(int config_array[]) {
 			}
 			// Up mode
 			PRINTF("1 IS WORKING \r\n");
-			for (red_inc = config_array[2]; red_inc <= config_array[5];
-					red_inc = red_inc + config_array[8]) {
+			for (red_inc = config_array[2]; red_inc <= config_array[5];red_inc = red_inc + config_array[8]) {
 				PRINTF("%d,%d,%d\r\n", red_inc, green_inc, blue_inc);
 
-				for (green_inc = config_array[3]; green_inc <= config_array[6];
-						green_inc = green_inc + config_array[9]) {
+				for (green_inc = config_array[3]; green_inc <= config_array[6];green_inc = green_inc + config_array[9]) {
 
-					for (blue_inc = config_array[3];
-							blue_inc <= config_array[7];
-							blue_inc = blue_inc + config_array[10]) {
+					for (blue_inc = config_array[3];blue_inc <= config_array[7];blue_inc = blue_inc + config_array[10]) {
 
 						blue_duty = (blue_inc / 3.0) * 100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
 						FTM_MODE, blue_duty);
 						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						colour_update(red_inc, green_inc, blue_inc,
-								colour_pattern);
-						PRINTF("%d,%d,%d \r\n", red_duty, green_duty,
-								blue_duty);
+						colour_update(red_inc, green_inc, blue_inc,colour_pattern);
+						PRINTF("%d,%d,%d \r\n", red_duty, green_duty,blue_duty);
 						Delay(config_array[11]);
 
 					}
@@ -139,8 +133,7 @@ int auto_mode(int config_array[]) {
 				}
 
 				red_duty = (red_inc / 7.0) * 100;
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-						red_duty);
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
 				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				colour_update(red_inc, green_inc, blue_inc, colour_pattern);
 				Delay(config_array[11]);
@@ -174,29 +167,25 @@ int auto_mode(int config_array[]) {
 				cycle--;
 
 			//Down mode
-			for (red_dec = config_array[5]; red_dec >= config_array[2];
-					red_dec = red_dec - config_array[8]) {
+			PRINTF("IN DOWN MODE");
+			for (red_dec = config_array[5]; red_dec >= config_array[2];red_dec = red_dec - config_array[8]) {
 
-				for (green_dec = config_array[6]; green_dec >= config_array[3];
-						green_dec = green_dec - config_array[9]) {
+				for (green_dec = config_array[6]; green_dec >= config_array[3];green_dec = green_dec - config_array[9]) {
 
-					for (blue_dec = config_array[7];
-							blue_dec >= config_array[4];
-							blue_dec = blue_dec - config_array[10]) {
+					for (blue_dec = config_array[7];blue_dec >= config_array[4];blue_dec = blue_dec - config_array[10]) {
+						PRINTF("%d, %d, %d\r\n", red_duty, green_duty , blue_duty);
 
 						blue_duty = (blue_dec / 3.0) * 100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
 						FTM_MODE, blue_duty);
 						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						colour_update(red_dec, green_dec, blue_dec,
-								colour_pattern);
+						colour_update(red_dec, green_dec, blue_dec,colour_pattern);
 						Delay(config_array[11]);
 
 					}
 
 					green_duty = (green_dec / 7.0) * 100;
-					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-					FTM_MODE, green_duty);
+					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,FTM_MODE, green_duty);
 					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 					colour_update(red_dec, green_dec, blue_dec, colour_pattern);
 					Delay(config_array[11]);
@@ -204,27 +193,20 @@ int auto_mode(int config_array[]) {
 				}
 
 				red_duty = (red_dec / 7.0) * 100;
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-						red_duty);
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
 				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				colour_update(red_dec, green_dec, blue_dec, colour_pattern);
 				Delay(config_array[11]);
 			}
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-					((config_array[5] / 7.0) * 100));
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,
-					((config_array[6] / 7.0) * 100));
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
-					((config_array[7] / 3.0) * 100));
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,((config_array[5] / 7.0) * 100));
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,((config_array[6] / 7.0) * 100));
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,((config_array[7] / 3.0) * 100));
 			FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 
 		} while (cycle);
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-				((config_array[5] / 7.0) * 100));
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,
-				((config_array[6] / 7.0) * 100));
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
-				((config_array[7] / 3.0) * 100));
+		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,((config_array[5] / 7.0) * 100));
+		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,((config_array[6] / 7.0) * 100));
+		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,((config_array[7] / 3.0) * 100));
 		FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 
 	}
@@ -235,25 +217,22 @@ int auto_mode(int config_array[]) {
 			} else {
 				cycle--;
 			}
+			//PRINTF("In mode3");
 
 			//updown mode
 
-			for (red_inc = config_array[2]; red_inc <= config_array[5];
-					red_inc = red_inc + config_array[8]) {
 
-				for (green_inc = config_array[3]; green_inc <= config_array[6];
-						green_inc = green_inc + config_array[9]) {
+			for (red_inc = config_array[2]; red_inc <= config_array[5];red_inc = red_inc + config_array[8]) {
 
-					for (blue_inc = config_array[4];
-							blue_inc <= config_array[7];
-							blue_inc = green_inc + config_array[10]) {
+				for (green_inc = config_array[3]; green_inc <= config_array[6];green_inc = green_inc + config_array[9]) {
+
+					for (blue_inc = config_array[4];blue_inc <= config_array[7];blue_inc = blue_inc + config_array[10]) {
+						PRINTF("%d, %d, %d\r\n", red_duty, green_duty , blue_duty);
 
 						blue_duty = (blue_inc / 3.0) * 100;
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-						FTM_MODE, blue_duty);
+						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,FTM_MODE, blue_duty);
 						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						colour_update(red_inc, green_inc, blue_inc,
-								colour_pattern);
+						colour_update(red_inc, green_inc, blue_inc,colour_pattern);
 						Delay(config_array[11]);
 					}
 
@@ -266,8 +245,7 @@ int auto_mode(int config_array[]) {
 				}
 
 				red_duty = (red_inc / 7.0) * 100;
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-						red_duty);
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
 				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				colour_update(red_inc, green_inc, blue_inc, colour_pattern);
 				Delay(config_array[11]);
@@ -279,23 +257,23 @@ int auto_mode(int config_array[]) {
 			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
 					((config_array[7] / 3.0) * 100));
 			FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			//PRINTF("UPMODE");
 
-			for (red_dec = config_array[5]; red_dec >= config_array[2];
-					red_dec = red_dec - config_array[8]) {
 
-				for (green_dec = config_array[6]; green_dec >= config_array[3];
-						green_dec = green_dec - config_array[9]) {
 
-					for (blue_dec = config_array[7];
-							blue_dec >= config_array[4];
-							blue_dec = blue_dec - config_array[10]) {
+			for (red_dec = config_array[5]; red_dec >= config_array[2];red_dec = red_dec - config_array[8]) {
+
+				for (green_dec = config_array[6]; green_dec >= config_array[3];green_dec = green_dec - config_array[9]) {
+
+					for (blue_dec = config_array[7];blue_dec >= config_array[4];blue_dec = blue_dec - config_array[10]) {
+						PRINTF("%d, %d, %d\r\n", red_duty, green_duty , blue_duty);
+
 
 						blue_duty = (blue_dec / 3.0) * 100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
 						FTM_MODE, blue_duty);
 						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						colour_update(red_dec, green_dec, blue_dec,
-								colour_pattern);
+						colour_update(red_dec, green_dec, blue_dec,colour_pattern);
 						Delay(config_array[11]);
 
 					}
@@ -308,21 +286,20 @@ int auto_mode(int config_array[]) {
 					Delay(config_array[11]);
 				}
 
-				red_duty = (red_inc / 7.0) * 100;
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-						red_duty);
+				red_duty = (red_dec / 7.0) * 100;
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
 				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				colour_update(red_inc, green_inc, blue_inc, colour_pattern);
 				Delay(config_array[11]);
 
 			}
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-					((config_array[5] / 7.0) * 100));
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,
-					((config_array[6] / 7.0) * 100));
-			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
-					((config_array[7] / 3.0) * 100));
-		} while (cycle);
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,((config_array[2] / 7.0) * 100));
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,((config_array[3] / 7.0) * 100));
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,((config_array[4] / 3.0) * 100));
+			FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			//PRINTF("IN down mode");
+		}
+		while (cycle);
 	}
 
 	return 0;
@@ -412,11 +389,12 @@ int manual_mode(int config_array[14]) {
 				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,blue_duty);
 				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,FTM_MODE, green_duty);
 				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				//Accepet the command
 				word_flag = comnts_read();
 				if(word_flag == 2) {
 
-					if(blue_inc <= config_array[7] || green_inc <= config_array[6] || red_inc <= config_array[5]) {
+					if(blue_inc <= config_array[7] && green_inc <= config_array[6] && red_inc <= config_array[5]) {
 						//red_inc = config_array[2];
 						//green_inc = config_array[3];
 						//blue_inc = config_array[4];
