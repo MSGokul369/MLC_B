@@ -3,6 +3,7 @@
 #include "MK64F12.h"
 #include "fsl_ftm.h"
 #include "fsl_debug_console.h"
+#include "task.h"
 
 #define FTM_ADDRESS FTM3
 #define BLUE 1U
@@ -22,11 +23,16 @@
  *
  *
  */
-void Delay(int delay_mul) {
-	for (int i = 1000000; i > 0; i--) {
-		__asm__("nop");
+int Delay(int delay_mul) {
+	BaseType_t return_value;
+	TickType_t xTaskWakeuptime;
+	TickType_t delay_time;
+	xTaskWakeuptime = xTaskGetTickCount();
+	delay_time = delay_mul;
+	for( ; ;) {
+		return_value =xTaskDelayUntil(&xTaskWakeuptime,delay_time);
 	}
-	// Write delay body
+return return_value;
 }
 
 /*
@@ -311,21 +317,21 @@ int auto_mode(int config_array[]) {
  */
 int comnts_read(void) {
 	static int fn_cnt = 0;
-	uint8_t comands[14];
+	uint8_t comands[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	if (fn_cnt == 10) {
 		comands[0] = 0;
-		comands[1] = 62;
+		comands[1] = 60;
 	}
 	fn_cnt++;
 	if (comands[1] == 60) {
 		return FORWORD;
-	} else if (comands[1] == 60) {
+	} else if (comands[1] == 62) {
 		return BACKWORD;
 	} else if (comands[1] == 80) {
 		return PAUSE;
 	} else {
-		return START_OR_STOP;
+		return FORWORD;
 	}
 
 }
@@ -336,7 +342,7 @@ int comnts_read(void) {
  *
  */
 int manual_mode(int config_array[14]) {
-	uint8_t word_flag = 0;
+	uint8_t word_flag = 0, break_flag = 0, direc;
 	FTM_GetDefaultConfig(&ftmInfo);
 	ftmInfo.prescale = FTM_CalculateCounterClkDiv(FTM_ADDRESS, config_array[0],FTM_CLOCK);
 	FTM_Init(FTM_ADDRESS, &ftmInfo);
@@ -368,106 +374,79 @@ int manual_mode(int config_array[14]) {
 	FTM_SetupPwm(FTM_ADDRESS, parameter, 3, FTM_MODE, config_array[0],FTM_CLOCK);
 	//FTM_Software toggle;
 	FTM_StartTimer(FTM_ADDRESS, kFTM_SystemClock);
-	red_inc = config_array[2];
-	green_inc = config_array[3];
-	blue_inc = config_array[4];
+
+
+
+	red_duty = (red_inc / RED_MAX) * 100;
+	blue_duty = (blue_inc / BLUE_MAX) * 100;
+	green_duty = (green_inc / GREEN_MAX) * 100;
+	FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,blue_duty);
+	FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,FTM_MODE, green_duty);
+	FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
+	FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 	for (int j = 0; j < 14; j++) {
 			PRINTF("%d\r\n", config_array[j]);
 		}
 
 	//PRINTF("%d, %d, %d", red_inc, green_inc, blue_inc);
 	//PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
-	while (red_inc < config_array[5]) {
+	while(config_array[12] == 4 ) {
+		word_flag = comnts_read();
+		for(red_inc = config_array[2]; red_inc <= config_array[5]; red_inc = red_inc + (direc *config_array[8])) {
 
-		while (green_inc < config_array[6]) {
+			for( green_inc = config_array[3]; green_inc <= config_array[6]; green_inc = green_inc + (direc*config_array[9])) {
 
-			while (blue_inc < config_array[7]) {
-				PRINTF("%d, %d, %d", red_duty, green_duty, blue_duty);
-				blue_duty = (blue_inc / BLUE_MAX) * 100;
-				green_duty = (green_inc / GREEN_MAX) * 100;
-				red_duty = (red_inc / RED_MAX) * 100;
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,blue_duty);
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,FTM_MODE, green_duty);
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,red_duty);
-				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-				//Accepet the command
-				word_flag = comnts_read();
-				if(word_flag == 2) {
-
-					if(blue_inc <= config_array[7] && green_inc <= config_array[6] && red_inc <= config_array[5]) {
-						//red_inc = config_array[2];
-						//green_inc = config_array[3];
-						//blue_inc = config_array[4];
-
-						blue_duty = (blue_inc/BLUE_MAX)*100;
-						green_duty = (green_inc/GREEN_MAX)*100;
-						red_duty = (red_inc/RED_MAX)*100;
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)BLUE, FTM_MODE,blue_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)GREEN, FTM_MODE, green_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)RED, FTM_MODE, red_duty);
-						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-
-					} else {
-						blue_inc = blue_inc + config_array[10];
-
+				for(blue_inc = config_array[4]; blue_inc <= config_array[7] ; blue_inc = blue_inc + (direc*config_array[10])) {
+					PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
+					word_flag = comnts_read();
+					//PRINTF("%d\r\n",word_flag);
+					//if (break_flag == 1) {
+						//break;
+					if(word_flag == 2) {
+						//PRINTF("\r\n in LOOP");
+						PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
+						direc = 1;
 						blue_duty = (blue_inc/BLUE_MAX)*100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)BLUE, FTM_MODE,blue_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)GREEN, FTM_MODE, green_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)RED, FTM_MODE, red_duty);
+						Delay(1000);
 						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-
-					}
-					blue_inc = blue_inc + config_array[10];
-
-				} else if (word_flag == 3)
-				{
-					PRINTF("%d, %d, %d", red_duty, green_duty, blue_duty);
-					if (blue_inc <= config_array[4]|| green_inc <= config_array[3]|| red_inc <= config_array[2]) {
-
-
-
-						red_inc = config_array[5];
-						green_inc = config_array[6];
-						blue_inc = config_array[7];
-						blue_duty = (blue_inc / BLUE_MAX) * 100;
-						green_duty = (green_inc / GREEN_MAX) * 100;
-						red_duty = (red_inc / RED_MAX) * 100;
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-						FTM_MODE, blue_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-						FTM_MODE, green_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-						FTM_MODE, red_duty);
-						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+						break_flag = 1;
 						break;
-
-					} else {
-
-						blue_inc = blue_inc - config_array[10];
-						blue_duty = (blue_inc / BLUE_MAX) * 100;
-						PRINTF("%d, %d, %d \r\n", red_duty, green_duty, blue_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-						FTM_MODE, blue_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-						FTM_MODE, green_duty);
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-						FTM_MODE, red_duty);
-						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+					} else if (word_flag == 3) {
+						direc = -1;
 
 					}
-
-					break;
 
 				}
+				/*if (break_flag == 1) {
+					break;
+				}*/
 
+				if(word_flag == 2) {
+					direc = 1;
+				} else if (word_flag == 3) {
+					direc = -1;
+				}
+				PRINTF("\r\nIN GREEN LOOP");
+				//green_inc = green_inc + config_array[9];
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)GREEN, FTM_MODE, green_duty);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+				break_flag = 1;
 				break;
 			}
-			green_inc = green_inc + config_array[9];
-			break;
+			/*if (break_flag == 1) {
+				break;
+			}*/
+			//red_inc = red_inc + config_array[8];
+			if(word_flag == 2) {
+				direc = 1;
+			} else if(word_flag == 3) {
+				direc = -1;
+			}
+			FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t)RED, FTM_MODE, red_duty);
+			FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			//break;
 		}
-		red_inc = red_inc + config_array[8];
-
-		break;
 	}
 	return 0;
 }

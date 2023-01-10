@@ -93,11 +93,11 @@ static void configure_device(void *pvParameters) {
 static void generate_pattern(void *pvParameters) {
 
 
-	int config[14] ={1000,1,0,0,0,7,7,3,1,1,1,1,3,1};
-	//auto_mode(config);
+	int config[14] ={1000,1,1,1,1,7,7,3,1,1,1,1,1,1};
+	auto_mode(config);
 
 
-	manual_mode(config);
+	//manual_mode(config);
 	//PRINTF("Pattern");
 	while (1)
 		;
