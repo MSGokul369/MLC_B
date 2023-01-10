@@ -318,8 +318,19 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="com.crt.advproject.config.exe.debug.130848368.696532845" name="/" resourcePath="Peripherals">
+						<toolChain id="com.crt.advproject.toolchain.exe.debug.1592807909" name="NXP MCU Tools" superClass="com.crt.advproject.toolchain.exe.debug" unusedChildren="">
+							<tool id="com.crt.advproject.cpp.exe.debug.49296767" name="MCU C++ Compiler" superClass="com.crt.advproject.cpp.exe.debug.522907173"/>
+							<tool id="com.crt.advproject.gcc.exe.debug.1299428948" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.2147219094"/>
+							<tool id="com.crt.advproject.gas.exe.debug.228439038" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug.1253673193"/>
+							<tool id="com.crt.advproject.link.cpp.exe.debug.1297077780" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.debug.79969586"/>
+							<tool id="com.crt.advproject.link.exe.debug.1618751863" name="MCU Linker" superClass="com.crt.advproject.link.exe.debug.1032490144"/>
+							<tool id="com.crt.advproject.tool.debug.debug.127399656" name="MCU Debugger" superClass="com.crt.advproject.tool.debug.debug.119843223"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="CMSIS"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Peripherals"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="UI"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="board"/>
 						<entry flags="LOCAL|VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="component"/>
@@ -715,5 +726,12 @@
 &lt;/TargetConfig&gt;</projectStorage>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/MLC_TeamB"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/MLC_TeamB"/>
+		</configuration>
+	</storageModule>
 </cproject>

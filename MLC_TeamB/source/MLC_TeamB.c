@@ -10,24 +10,33 @@
  * 	-161222 MSG : Creation Date
  */
 
-/*System includes.*/
+/* Freescale includes. */
 #include <stdio.h>
-#include "board.h"
 #include "peripherals.h"
-#include "pin_mux.h"
-#include "clock_config.h"
 #include "MK64F12.h"
-#include "fsl_debug_console.h"
 #include "fsl_uart.h"
+#include "fsl_device_registers.h"
+#include "fsl_debug_console.h"
+#include "fsl_i2c.h"
+#include "fsl_i2c_edma.h"
+#include "fsl_dmamux.h"
+#include "fsl_common.h"
+#include "fsl_gpio.h"
+#include "fsl_port.h"
+
+#include "clock_config.h"
+#include "board.h"
+#include "pin_mux.h"
+
+/* FreeRTOS kernel includes. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
 #include "timers.h"
 
 /*Program includes.*/
 #include "../UI/user_interface.h"
-
-/*RTOS includes.*/
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include "../Peripherals/peripheral.h"
 
 /*******************************************
  * Const and Macro Defines
@@ -40,44 +49,69 @@
 #define UART_IRQn       UART0_RX_TX_IRQn
 #define UART_IRQHandler UART0_RX_TX_IRQHandler
 
-#define clear() printf("\033[H\033[J")
-#define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
-
-/***********************************
- *  Typedefs and Enum Declarations
- ***********************************/
-//none
-/***********************************
- *  External Variable Declarations
- ***********************************/
-//none
-/***********************************
- *  Const Declarations
- ***********************************/
-//none
-/***********************************
- *  Public Variables
- ***********************************/
-//none
-/***********************************
- *  Private Variables
- ***********************************/
-//none
-/***********************************
- * Private Prototypes
- ***********************************/
-static void generate_pattern(void *pvParameters);
-
-/*
- * @brief   Application entry point.
+/***************************************/
+/**
+ * Colour Queue Data Format
  */
-int main(void) {
+#define DATA_FLAG 0
+#define RED_VALUE 1
+#define GREEN_VALUE 2
+#define BLUE_VALUE 3
+/***************************************/
+/**
+ * Configuration Queue Data Format
+ */
+#define REFRESH_RATE 0
+#define RGB_SCHEME 1
+#define RED_START_VALUE 2
+#define GREEN_START_VALUE 3
+#define BLUE_START_VALUE 4
+#define RED_END_VALUE 5
+#define GREEN_END_VALUE 6
+#define BLUE_END_VALUE 7
+#define RED_RESOLUTION_VALUE 8
+#define GREEN_RESOLUTION_VALUE 9
+#define BLUE_RESOLUTION_VALUE 10
+#define CHANGE_RATE 11
+#define MODE 12
+#define CYCLES 13
+/***************************************/
 
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+#define hello_task_PRIORITY (configMAX_PRIORITIES - 1)
+/*******************************************************************************
+ * Prototypes
+ ******************************************************************************/
+static void pattern_task(void *pvParameters);
+static void ui_master(void *pvParameters);
+static void ui_slave(void *pvParameters);
+
+void delay(float second) {
+	second = second * (42000000 / 20);
+	while (second)
+		second--;
+}
+
+/*******************************************************************************
+ * Code
+ ******************************************************************************/
+/*!
+ * @brief Application entry point.
+ */
+
+int main(void) {
 	/* Init board hardware. */
+	int master_slave_flag = 1;
+
 	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
-	BOARD_InitBootPeripherals();
 	BOARD_InitDebugConsole();
+	//BOARD_InitI2CPeripherals();
+
+	master_slave_flag = GPIO_PinRead( GPIOD, 0);
 
 	/* Enable RX interrupt. */
 	UART_EnableInterrupts(UART,
@@ -85,41 +119,120 @@ int main(void) {
 					| kUART_RxOverrunInterruptEnable);
 	EnableIRQ(UART_IRQn);
 
-	uint32_t master_slave_flag;
-	master_slave_flag = GPIO_PinRead( GPIOD, 0);
+	if (master_slave_flag) {
 
-	if (master_slave_flag == 1) {
-		if (xTaskCreate(master_ui, "MASTER_UI", 1000, NULL, 2,
-		NULL) != pdPASS) {
-			PRINTF("Task creation failed!.\n\t");
+		if (xTaskCreate(ui_master, "Master User Interface",
+		configMINIMAL_STACK_SIZE + 1000,
+		NULL, hello_task_PRIORITY, NULL) !=
+		pdPASS) {
+			PRINTF("Task creation failed!.\r\n");
 			while (1)
 				;
 		}
-	} else if (master_slave_flag == 0) {
-		if (xTaskCreate(slave_ui, "SLAVE_UI", 1000, NULL, 2,
-		NULL) != pdPASS) {
-			PRINTF("Task creation failed!.\n\t");
-			while (1)
-				;
-		}
-		if (xTaskCreate(generate_pattern, "GENERATE_PATTERN", 1000, NULL, 2,
-		NULL) != pdPASS) {
-			PRINTF("Task creation failed!.\n\t");
+	} else {
+		if (xTaskCreate(ui_slave, "Slave User Interface",
+		configMINIMAL_STACK_SIZE + 1000,
+		NULL, hello_task_PRIORITY, NULL) !=
+		pdPASS) {
+			PRINTF("Task creation failed!.\r\n");
 			while (1)
 				;
 		}
 	}
-		vTaskStartScheduler();
+
+	if (xTaskCreate(pattern_task, "Pattern Generator",
+	configMINIMAL_STACK_SIZE + 100, NULL, hello_task_PRIORITY, NULL) !=
+	pdPASS) {
+		PRINTF("Task creation failed!.\r\n");
 		while (1)
 			;
-		return 0;
+	}
+	vTaskStartScheduler();
+	for (;;)
+		;
+}
+
+static void ui_master(void *pvParameters) {
+
+	boot_screen();
+
+	int *configuration_pointer;
+	int configuration_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1 };
+
+	while(1){
+	while(1){
+	configuration_pointer = master_ui(configuration_array[0],
+			configuration_array[1], configuration_array[2],
+			configuration_array[3], configuration_array[4],
+			configuration_array[5], configuration_array[6],
+			configuration_array[7], configuration_array[8],
+			configuration_array[9], configuration_array[10],
+			configuration_array[11], configuration_array[12],
+			configuration_array[13]);
+	for (int i = 0; i <= 13; i++) {
+		configuration_array[i] = configuration_pointer[i];
+	}
+	for (int i = 0; i <= 13; i++) {
+		PRINTF("%d\r\n", configuration_array[i]);
+	}
+	ui_delay(5000);
+	}
+	}
+}
+
+static void ui_slave(void *pvParameters) {
 
 }
 
-static void generate_pattern(void *pvParameters) {
-
-	PRINTF("\033[16;25Hhello");
-
-	while (1)
-		;
+/*!
+ * @brief Task responsible for printing of "Hello world." message.
+ */
+static void pattern_task(void *pvParameters) {
+	/*int config_arr[15];
+	 int color_arr[4];
+	 int i, j, k, cur_red, cur_green, cur_blue;
+	 for (;;) {
+	 PRINTF("Pattern generator\r\n");
+	 if (xQueueReceive(config_queue, config_arr, 0) == pdPASS) {
+	 color_arr[DATA_FLAG] = 1;
+	 color_arr[RED_VALUE] = config_arr[RED_START_VALUE];
+	 color_arr[GREEN_VALUE] = config_arr[GREEN_START_VALUE];
+	 color_arr[BLUE_VALUE] = config_arr[BLUE_START_VALUE];
+	 for (i = 0; +i <= config_arr[RED_END_VALUE]; i +=
+	 config_arr[RED_RESOLUTION_VALUE]) {
+	 cur_red = config_arr[RED_START_VALUE] + i;
+	 for (j = 0;
+	 (config_arr[GREEN_START_VALUE] + j)
+	 <= config_arr[GREEN_END_VALUE]; j +=
+	 config_arr[GREEN_RESOLUTION_VALUE]) {
+	 cur_green = config_arr[GREEN_START_VALUE] + j;
+	 for (k = 0;
+	 (config_arr[BLUE_START_VALUE] + k)
+	 <= config_arr[BLUE_END_VALUE]; k +=
+	 config_arr[BLUE_RESOLUTION_VALUE]) {
+	 cur_blue = config_arr[BLUE_START_VALUE] + k;
+	 color_arr[DATA_FLAG] = 1;
+	 color_arr[RED_VALUE] = cur_red;
+	 color_arr[GREEN_VALUE] = cur_green;
+	 color_arr[BLUE_VALUE] = cur_blue;
+	 while (1) {
+	 if (xQueueSendToFront(color_queue, color_arr,
+	 0) == pdPASS) {
+	 break;
+	 }
+	 }
+	 delay(0.01 * config_arr[CHANGE_RATE]);
+	 if (config_arr[BLUE_RESOLUTION_VALUE] == 0)
+	 break;
+	 }
+	 if (config_arr[GREEN_RESOLUTION_VALUE] == 0)
+	 break;
+	 }
+	 if (config_arr[RED_RESOLUTION_VALUE] == 0)
+	 break;
+	 }
+	 }
+	 //vTaskSuspend(NULL);
+	 }
+	 */
 }

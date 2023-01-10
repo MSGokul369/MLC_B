@@ -347,9 +347,12 @@ void ui_delay(int delay) {
 	}
 }
 
-void master_ui(void *pvParameters) {
+int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_arg,
+		int start_color_2_arg, int start_color_3_arg, int end_color_1_arg,
+		int end_color_2_arg, int end_color_3_arg, int resolution_1_arg,
+		int resolution_2_arg, int resolution_3_arg, int color_change_rate_arg,
+		int current_mode_index_arg, int up_down_count_arg) {
 
-	boot_screen();
 	while (1) {
 		int uart_read;
 		UART_DisableInterrupts(UART,
@@ -370,17 +373,30 @@ void master_ui(void *pvParameters) {
 	}
 
 	int input_index;
-	int current_mode_index = 1;
-	int curent_rgb_scheme_index = 1;
-	int color_change_rate = 1;
-	int led_refresh_rate = 1;
-	int start_color[3] = { 0, 0, 0 }, end_color[3] = { 0, 0, 0 },
-			resolution[3] = { 1, 1, 1 };
+	int current_mode_index = current_mode_index_arg;
+	int curent_rgb_scheme_index = rgb_scheme_index;
+	int color_change_rate = color_change_rate_arg;
+	int led_refresh_rate = led_refresh_rate_arg;
+	int start_color[3];
+	start_color[0] = start_color_1_arg;
+	start_color[1] = start_color_2_arg;
+	start_color[2] = start_color_3_arg;
+	int end_color[3];
+	end_color[0] = end_color_1_arg;
+	end_color[1] = end_color_2_arg;
+	end_color[2] = end_color_3_arg;
+	int resolution[3];
+	resolution[0] = resolution_1_arg;
+	resolution[1] = resolution_2_arg;
+	resolution[2] = resolution_3_arg;
 	int *start_pointer;
 	int *end_pointer;
 	int *resolution_pointer;
-	int up_down_count;
+	int up_down_count = up_down_count_arg;
 	int process_status = 0;
+
+	static int configuration_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1,
+			1, 1 };
 
 	while (1) {
 		ui_homescreen(led_refresh_rate, start_color, end_color,
@@ -630,12 +646,105 @@ void master_ui(void *pvParameters) {
 		} else if (input_index == 3) {
 			process_status = start_stop(led_refresh_rate, start_color,
 					end_color, color_change_rate, current_mode_index,
-					resolution, process_status);
-
+					resolution, up_down_count, process_status);
+			if (process_status == 1) {
+				configuration_array[0] = led_refresh_rate;
+				configuration_array[1] = curent_rgb_scheme_index;
+				configuration_array[2] = start_color[0];
+				configuration_array[3] = start_color[1];
+				configuration_array[4] = start_color[2];
+				configuration_array[5] = end_color[0];
+				configuration_array[6] = end_color[1];
+				configuration_array[7] = end_color[2];
+				configuration_array[8] = resolution[0];
+				configuration_array[9] = resolution[1];
+				configuration_array[10] = resolution[2];
+				configuration_array[11] = color_change_rate;
+				configuration_array[12] = current_mode_index;
+				configuration_array[13] = up_down_count;
+			} else if (process_status == 0) {
+				configuration_array[0] = 0;
+				configuration_array[1] = 0;
+				configuration_array[2] = 's';
+				configuration_array[3] = 0;
+				configuration_array[4] = 0;
+				configuration_array[5] = 0;
+				configuration_array[6] = 0;
+				configuration_array[7] = 0;
+				configuration_array[8] = 0;
+				configuration_array[9] = 0;
+				configuration_array[10] = 0;
+				configuration_array[11] = 0;
+				configuration_array[12] = 0;
+				configuration_array[13] = 0;
+			} else if (process_status == 2) {
+				configuration_array[0] = 0;
+				configuration_array[1] = 0;
+				configuration_array[2] = 'p';
+				configuration_array[3] = 0;
+				configuration_array[4] = 0;
+				configuration_array[5] = 0;
+				configuration_array[6] = 0;
+				configuration_array[7] = 0;
+				configuration_array[8] = 0;
+				configuration_array[9] = 0;
+				configuration_array[10] = 0;
+				configuration_array[11] = 0;
+				configuration_array[12] = 0;
+				configuration_array[13] = 0;
+			}
+			return configuration_array;
 		} else if (input_index == 4) {
 			process_status = play_pause(led_refresh_rate, start_color,
 					end_color, color_change_rate, current_mode_index,
-					resolution, process_status);
+					resolution, up_down_count, process_status);
+			if (process_status == 1) {
+				configuration_array[0] = led_refresh_rate;
+				configuration_array[1] = curent_rgb_scheme_index;
+				configuration_array[2] = start_color[0];
+				configuration_array[3] = start_color[1];
+				configuration_array[4] = start_color[2];
+				configuration_array[5] = end_color[0];
+				configuration_array[6] = end_color[1];
+				configuration_array[7] = end_color[2];
+				configuration_array[8] = resolution[0];
+				configuration_array[9] = resolution[1];
+				configuration_array[10] = resolution[2];
+				configuration_array[11] = color_change_rate;
+				configuration_array[12] = current_mode_index;
+				configuration_array[13] = up_down_count;
+			} else if (process_status == 0) {
+				configuration_array[0] = 0;
+				configuration_array[1] = 0;
+				configuration_array[2] = 's';
+				configuration_array[3] = 0;
+				configuration_array[4] = 0;
+				configuration_array[5] = 0;
+				configuration_array[6] = 0;
+				configuration_array[7] = 0;
+				configuration_array[8] = 0;
+				configuration_array[9] = 0;
+				configuration_array[10] = 0;
+				configuration_array[11] = 0;
+				configuration_array[12] = 0;
+				configuration_array[13] = 0;
+			} else if (process_status == 2) {
+				configuration_array[0] = 0;
+				configuration_array[1] = 0;
+				configuration_array[2] = 'p';
+				configuration_array[3] = 0;
+				configuration_array[4] = 0;
+				configuration_array[5] = 0;
+				configuration_array[6] = 0;
+				configuration_array[7] = 0;
+				configuration_array[8] = 0;
+				configuration_array[9] = 0;
+				configuration_array[10] = 0;
+				configuration_array[11] = 0;
+				configuration_array[12] = 0;
+				configuration_array[13] = 0;
+			}
+			return configuration_array;
 		} else {
 			PRINTF("\r\n\tInvalid data received!");
 			ui_delay(5000000);
@@ -646,7 +755,7 @@ void master_ui(void *pvParameters) {
 
 int start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 		int color_change_rate, int current_mode_index, int resolution[3],
-		int process_status) {
+		int up_down_count, int process_status) {
 	while (1) {
 		if (current_mode_index == 1) {
 			if ((start_color[0] < end_color[0])
@@ -719,7 +828,7 @@ int start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
 
 int play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
 		int color_change_rate, int current_mode_index, int resolution[3],
-		int process_status) {
+		int up_down_count, int process_status) {
 	while (1) {
 		if (current_mode_index == 1) {
 			if ((start_color[0] < end_color[0])

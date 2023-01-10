@@ -78,7 +78,11 @@ int up_down_count_read(void);
  * @brief Call UI and subsequent functions in Master mode.
  *
  */
-void master_ui(void *pvParameters);
+int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_arg,
+		int start_color_2_arg, int start_color_3_arg, int end_color_1_arg,
+		int end_color_2_arg, int end_color_3_arg, int resolution_1_arg,
+		int resolution_2_arg, int resolution_3_arg, int color_change_rate_arg,
+		int current_mode_index_arg, int up_down_count_arg);
 
 /*!
  * @brief Call UI and subsequent functions in Slave mode
@@ -91,14 +95,16 @@ void slave_ui(void *pvParameters);
  *
  */
 int start_stop(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3], int process_status);
+		int color_change_rate, int current_mode_index, int resolution[3],
+		int up_down_count, int process_status);
 
 /*!
  * @brief Send Play and Pause commands along with configuration during inter-task communication to generate pattern
  *
  */
 int play_pause(int led_refresh_rate, int start_color[3], int end_color[3],
-		int color_change_rate, int current_mode_index, int resolution[3], int process_status);
+		int color_change_rate, int current_mode_index, int resolution[3],
+		int up_down_count, int process_status);
 
 /*!
  * @brief Verification of configuration and displays warning for invalid configurations.
