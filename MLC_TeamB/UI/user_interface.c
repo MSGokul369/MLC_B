@@ -168,7 +168,7 @@ void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
 
 void ui_homescreen_slave() {
 
-	boot_screen();
+	//boot_screen();
 	ui_delay(5000000);
 
 	int current_mode_index = 1;
@@ -666,32 +666,10 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 				configuration_array[0] = 0;
 				configuration_array[1] = 0;
 				configuration_array[2] = 's';
-				configuration_array[3] = 0;
-				configuration_array[4] = 0;
-				configuration_array[5] = 0;
-				configuration_array[6] = 0;
-				configuration_array[7] = 0;
-				configuration_array[8] = 0;
-				configuration_array[9] = 0;
-				configuration_array[10] = 0;
-				configuration_array[11] = 0;
-				configuration_array[12] = 0;
-				configuration_array[13] = 0;
 			} else if (process_status == 2) {
 				configuration_array[0] = 0;
 				configuration_array[1] = 0;
 				configuration_array[2] = 'p';
-				configuration_array[3] = 0;
-				configuration_array[4] = 0;
-				configuration_array[5] = 0;
-				configuration_array[6] = 0;
-				configuration_array[7] = 0;
-				configuration_array[8] = 0;
-				configuration_array[9] = 0;
-				configuration_array[10] = 0;
-				configuration_array[11] = 0;
-				configuration_array[12] = 0;
-				configuration_array[13] = 0;
 			}
 			return configuration_array;
 		} else if (input_index == 4) {

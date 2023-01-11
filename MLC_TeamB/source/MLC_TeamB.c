@@ -155,28 +155,64 @@ int main(void) {
 static void ui_master(void *pvParameters) {
 
 	boot_screen();
-
-	int *configuration_pointer;
+	int configuration_send_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1,
+			1 };
 	int configuration_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1 };
+	int *configuration_pointer = configuration_array;
 
-	while(1){
-	while(1){
-	configuration_pointer = master_ui(configuration_array[0],
-			configuration_array[1], configuration_array[2],
-			configuration_array[3], configuration_array[4],
-			configuration_array[5], configuration_array[6],
-			configuration_array[7], configuration_array[8],
-			configuration_array[9], configuration_array[10],
-			configuration_array[11], configuration_array[12],
-			configuration_array[13]);
-	for (int i = 0; i <= 13; i++) {
-		configuration_array[i] = configuration_pointer[i];
-	}
-	for (int i = 0; i <= 13; i++) {
-		PRINTF("%d\r\n", configuration_array[i]);
-	}
-	ui_delay(5000);
-	}
+	while (1) {
+		while (1) {
+
+			configuration_pointer = master_ui(configuration_array[0],
+					configuration_array[1], configuration_array[2],
+					configuration_array[3], configuration_array[4],
+					configuration_array[5], configuration_array[6],
+					configuration_array[7], configuration_array[8],
+					configuration_array[9], configuration_array[10],
+					configuration_array[11], configuration_array[12],
+					configuration_array[13]);
+
+			if ((configuration_pointer[2] != 112)
+					&& (configuration_pointer[2] != 115)) {
+
+				for (int i = 0; i <= 13; i++) {
+					configuration_array[i] = configuration_pointer[i];
+				}
+				for (int i = 0; i <= 13; i++) {
+					configuration_send_array[i] = configuration_pointer[i];
+				}
+
+				for (int i = 0; i <= 13; i++) {
+					PRINTF("%d ", configuration_array[i]);
+				}
+				for (int i = 0; i <= 13; i++) {
+					PRINTF("%d ", configuration_send_array[i]);
+				}
+
+			} else if ((configuration_pointer[2] == 112)
+					&& (configuration_pointer[2] == 115)) {
+
+				configuration_pointer = master_ui(configuration_array[0],
+						configuration_array[1], configuration_array[2],
+						configuration_array[3], configuration_array[4],
+						configuration_array[5], configuration_array[6],
+						configuration_array[7], configuration_array[8],
+						configuration_array[9], configuration_array[10],
+						configuration_array[11], configuration_array[12],
+						configuration_array[13]);
+
+				for (int i = 0; i <= 13; i++) {
+					configuration_send_array[i] = configuration_pointer[i];
+				}
+
+				for (int i = 0; i <= 13; i++) {
+					PRINTF("%d ", configuration_array[i]);
+				}
+				for (int i = 0; i <= 13; i++) {
+					PRINTF("%d ", configuration_send_array[i]);
+				}
+			}
+		}
 	}
 }
 
