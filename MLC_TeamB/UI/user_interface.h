@@ -82,7 +82,7 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 		int start_color_2_arg, int start_color_3_arg, int end_color_1_arg,
 		int end_color_2_arg, int end_color_3_arg, int resolution_1_arg,
 		int resolution_2_arg, int resolution_3_arg, int color_change_rate_arg,
-		int current_mode_index_arg, int up_down_count_arg);
+		int current_mode_index_arg, int up_down_count_arg, int process_status_arg);
 
 /*!
  * @brief Call UI and subsequent functions in Slave mode

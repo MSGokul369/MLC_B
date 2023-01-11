@@ -95,6 +95,26 @@ void boot_screen(void) {
 	PRINTF("\033[0m");
 	PRINTF("\n\r\033[5m\tPress Space to continue...\033[0m");
 	PRINTF("\033[37m\n");
+
+	while (1) {
+		int uart_read;
+		UART_DisableInterrupts(UART,
+				kUART_RxDataRegFullInterruptEnable
+						| kUART_RxOverrunInterruptEnable);
+		while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+			UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+		uart_read = UART_ReadByte(UART0);
+
+		if (uart_read == 32) {
+			UART_EnableInterrupts(UART,
+					kUART_RxDataRegFullInterruptEnable
+							| kUART_RxOverrunInterruptEnable);
+			break;
+		} else {
+			continue;
+		}
+	}
+
 }
 
 void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
@@ -351,28 +371,9 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 		int start_color_2_arg, int start_color_3_arg, int end_color_1_arg,
 		int end_color_2_arg, int end_color_3_arg, int resolution_1_arg,
 		int resolution_2_arg, int resolution_3_arg, int color_change_rate_arg,
-		int current_mode_index_arg, int up_down_count_arg) {
+		int current_mode_index_arg, int up_down_count_arg, int process_status_arg) {
 
-	while (1) {
-		int uart_read;
-		UART_DisableInterrupts(UART,
-				kUART_RxDataRegFullInterruptEnable
-						| kUART_RxOverrunInterruptEnable);
-		while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
-			UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
-		uart_read = UART_ReadByte(UART0);
-
-		if (uart_read == 32) {
-			UART_EnableInterrupts(UART,
-					kUART_RxDataRegFullInterruptEnable
-							| kUART_RxOverrunInterruptEnable);
-			break;
-		} else {
-			continue;
-		}
-	}
-
-	int input_index;
+	int input_index =0;
 	int current_mode_index = current_mode_index_arg;
 	int curent_rgb_scheme_index = rgb_scheme_index;
 	int color_change_rate = color_change_rate_arg;
@@ -393,7 +394,7 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 	int *end_pointer;
 	int *resolution_pointer;
 	int up_down_count = up_down_count_arg;
-	int process_status = 0;
+	int process_status = process_status_arg;
 
 	static int configuration_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1,
 			1, 1 };
@@ -662,6 +663,7 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 				configuration_array[11] = color_change_rate;
 				configuration_array[12] = current_mode_index;
 				configuration_array[13] = up_down_count;
+				configuration_array[14] = process_status;
 			} else if (process_status == 0) {
 				configuration_array[0] = 0;
 				configuration_array[1] = 0;
@@ -691,36 +693,15 @@ int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_
 				configuration_array[11] = color_change_rate;
 				configuration_array[12] = current_mode_index;
 				configuration_array[13] = up_down_count;
+				configuration_array[14] = process_status;
 			} else if (process_status == 0) {
 				configuration_array[0] = 0;
 				configuration_array[1] = 0;
 				configuration_array[2] = 's';
-				configuration_array[3] = 0;
-				configuration_array[4] = 0;
-				configuration_array[5] = 0;
-				configuration_array[6] = 0;
-				configuration_array[7] = 0;
-				configuration_array[8] = 0;
-				configuration_array[9] = 0;
-				configuration_array[10] = 0;
-				configuration_array[11] = 0;
-				configuration_array[12] = 0;
-				configuration_array[13] = 0;
 			} else if (process_status == 2) {
 				configuration_array[0] = 0;
 				configuration_array[1] = 0;
 				configuration_array[2] = 'p';
-				configuration_array[3] = 0;
-				configuration_array[4] = 0;
-				configuration_array[5] = 0;
-				configuration_array[6] = 0;
-				configuration_array[7] = 0;
-				configuration_array[8] = 0;
-				configuration_array[9] = 0;
-				configuration_array[10] = 0;
-				configuration_array[11] = 0;
-				configuration_array[12] = 0;
-				configuration_array[13] = 0;
 			}
 			return configuration_array;
 		} else {
