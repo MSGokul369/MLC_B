@@ -152,7 +152,14 @@ void ui_homescreen(int *ui_current_values) {
 	PRINTF("\t\t\t\t    ******************* \r\n");
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Device Mode\t:\tMaster \r\n");
-	PRINTF("\t\t\t\t Slave Status\t:\tOnline \r\n");
+	switch (ui_current_values[COMPANION_STATUS]) {
+		case kStatus_Success:
+			PRINTF("\t\t\t\t Slave Status\t:\tConnected\r\n");
+			break;
+		case kStatus_Fail:
+			PRINTF("\t\t\t\t Slave Status\t:\tDisconnected\r\n");
+			break;
+	}
 	switch (ui_current_values[PROCESS_STATUS]) {
 	case 0:
 		PRINTF("\t\t\t\t Process Status\t:\tStopped \r\n");
@@ -408,11 +415,11 @@ void master_ui(int *ui_current_values) {
 		while (1) {
 			input_index = 0;
 
-			char home_screen__menu[4][30] = { "Configure RGB LED",
-					"Configure Color Pattern ", "Start/Stop ", "Pause/Resume " };
-			input_index = arrow_key_navigate(home_screen__menu, 4, 26, 10);
+			char home_screen__menu[3][30] = { "Configure RGB LED",
+					"Configure Color Pattern ", "Start" };
+			input_index = arrow_key_navigate(home_screen__menu, 3, 26, 10);
 
-			if ((input_index > 0 && input_index < 5)) {
+			if ((input_index > 0 && input_index < 4)) {
 				break;
 			} else {
 				PRINTF("\r\n\tInvalid Entry!\r\n\tTry again...");
@@ -641,18 +648,8 @@ void master_ui(int *ui_current_values) {
 
 		} else if (input_index == 3) {
 			start_stop(ui_current_values);
-			if (ui_current_values[PROCESS_STATUS] == 1) {
-			} else if (ui_current_values[PROCESS_STATUS] == 0) {
-//				message_queue[0] = 0;
-//				message_queue[1] = 0;
-//				message_queue[2] = 's';
-			} else if (ui_current_values[PROCESS_STATUS] == 2) {
-//				message_queue[0] = 0;
-//				message_queue[1] = 0;
-//				message_queue[2] = 'p';
-			}
 			break;
-		} else if (input_index == 4) {
+		}/* else if (input_index == 4) {
 			play_pause(ui_current_values);
 			if (ui_current_values[PROCESS_STATUS] == 1) {
 			} else if (ui_current_values[PROCESS_STATUS] == 0) {
@@ -665,7 +662,7 @@ void master_ui(int *ui_current_values) {
 //				message_queue[2] = 'p';
 			}
 			break;
-		} else {
+		}*/ else {
 			PRINTF("\r\n\tInvalid data received!");
 			ui_delay(5000000);
 		}

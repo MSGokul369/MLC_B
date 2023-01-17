@@ -37,7 +37,7 @@
 /*Program includes.*/
 #include "../UI/user_interface.h"
 #include "../Peripherals/peripheral.h"
-
+#include "../Pattern_Generation/Pattern_Generation.h"
 /*******************************************
  * Const and Macro Defines
  *******************************************/
@@ -101,12 +101,25 @@ static QueueHandle_t color_queue = NULL;
 
 extern uint8_t valid_data;
 extern uint8_t tx_buffer;
+
+char master_handshake_buffer[10] = "MASTER";
+char slave_handshake_buffer[10] = "SLAVE";
+
+i2c_master_edma_handle_t g_m_dma_handle;
+edma_handle_t edmaHandle;
+uint8_t g_master_txBuff[I2C_FRAME_WIDTH] = "MASTER";
 /*******************************************************************************
  * Code
  ******************************************************************************/
 /*!
  * @brief Application entry point.
  */
+static void i2c_master_callback(I2C_Type *base,
+		i2c_master_edma_handle_t *handle, status_t status, void *userData)
+{
+	/* Signal transfer success when received success status. */
+	PRINTF("\r\nI2C Transfer Complete\r\n");
+}
 
 int main(void) {
 	/* Init board hardware. */
@@ -160,14 +173,111 @@ int main(void) {
 	for (;;)
 		;
 }
+void i2c_send_config(uint8_t config_buf[16])
+{
+	i2c_master_config_t masterConfig;
+	uint32_t sourceClock;
+	i2c_master_transfer_t masterXfer;
+	edma_config_t config;
+	DMAMUX_Init(I2C_DMAMUX_BASEADDR);
+	EDMA_GetDefaultConfig(&config);
+	EDMA_Init(I2C_DMA_BASEADDR, &config);
 
+	I2C_MasterGetDefaultConfig(&masterConfig);
+	masterConfig.baudRate_Bps = I2C_BAUDRATE;
+	sourceClock = I2C_MASTER_CLK_FREQ;
+	I2C_MasterInit(I2C_MASTER_BASEADDR, &masterConfig, sourceClock);
+	memset(&g_m_dma_handle, 0, sizeof(g_m_dma_handle));
+	memset(&masterXfer, 0, sizeof(masterXfer));
+	//uint8_t g_master_txBuff[I2C_FRAME_WIDTH] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+	uint8_t deviceAddress = 0x01U;
+	masterXfer.slaveAddress = I2C_MASTER_SLAVE_ADDR;
+	masterXfer.direction = kI2C_Write;
+	masterXfer.subaddress = (uint32_t) deviceAddress;
+	masterXfer.subaddressSize = 0;
+	masterXfer.data = g_master_txBuff;
+	masterXfer.dataSize = I2C_FRAME_WIDTH;
+	masterXfer.flags = kI2C_TransferDefaultFlag;
+	DMAMUX_SetSource(I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL, DMA_REQUEST_SRC);
+	EDMA_CreateHandle(&edmaHandle, I2C_DMA_BASEADDR, I2C_DMA_CHANNEL);
+	DMAMUX_EnableChannel(I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL);
+	I2C_MasterCreateEDMAHandle(I2C_MASTER_BASEADDR, &g_m_dma_handle,
+			i2c_master_callback, NULL, &edmaHandle);
+	masterXfer.direction = kI2C_Write;
+	masterXfer.data = config_buf;
+	status_t i2c_status = I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR,
+			&g_m_dma_handle, &masterXfer);
+	if (i2c_status != 0)
+	{
+		PRINTF("I2C Error %d", i2c_status);
+	}
+}
+status_t master_handshake(void)
+{
+	i2c_master_config_t masterConfig;
+	uint32_t sourceClock;
+	i2c_master_transfer_t masterXfer;
+	edma_config_t config;
+	char slave_data[I2C_FRAME_WIDTH] = "";
+	status_t ret;
+
+	DMAMUX_Init(I2C_DMAMUX_BASEADDR);
+	EDMA_GetDefaultConfig(&config);
+	EDMA_Init(I2C_DMA_BASEADDR, &config);
+
+	I2C_MasterGetDefaultConfig(&masterConfig);
+	masterConfig.baudRate_Bps = I2C_BAUDRATE;
+	sourceClock = I2C_MASTER_CLK_FREQ;
+	I2C_MasterInit(I2C_MASTER_BASEADDR, &masterConfig, sourceClock);
+	memset(&g_m_dma_handle, 0, sizeof(g_m_dma_handle));
+	memset(&masterXfer, 0, sizeof(masterXfer));
+	//uint8_t g_master_txBuff[I2C_FRAME_WIDTH] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+	uint8_t deviceAddress = 0x01U;
+	masterXfer.slaveAddress = I2C_MASTER_SLAVE_ADDR;
+	masterXfer.direction = kI2C_Write;
+	masterXfer.subaddress = (uint32_t) deviceAddress;
+	masterXfer.subaddressSize = 0;
+	masterXfer.data = g_master_txBuff;
+	masterXfer.dataSize = I2C_FRAME_WIDTH;
+	masterXfer.flags = kI2C_TransferDefaultFlag;
+	DMAMUX_SetSource(I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL, DMA_REQUEST_SRC);
+	EDMA_CreateHandle(&edmaHandle, I2C_DMA_BASEADDR, I2C_DMA_CHANNEL);
+	DMAMUX_EnableChannel(I2C_DMAMUX_BASEADDR, I2C_DMA_CHANNEL);
+	I2C_MasterCreateEDMAHandle(I2C_MASTER_BASEADDR, &g_m_dma_handle,
+			i2c_master_callback, NULL, &edmaHandle);
+
+	masterXfer.direction = kI2C_Write;
+	masterXfer.data = (uint8_t *)master_handshake_buffer;
+	status_t i2c_status = I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR,
+			&g_m_dma_handle, &masterXfer);
+	PRINTF("\r\nI2C Transfer Status: %d\r\n", i2c_status);
+	masterXfer.direction = kI2C_Read;
+	masterXfer.data = (uint8_t *)slave_data;
+	i2c_status += I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR, &g_m_dma_handle,
+			&masterXfer);
+	for (uint32_t i = 0U; i < I2C_FRAME_WIDTH; i++)
+	{
+		PRINTF("%c	 ", slave_data[i]);
+	}
+	if (strcmp(slave_data, slave_handshake_buffer) == 0)
+	{
+		ret = kStatus_Success;
+	}
+	else
+	{
+		ret = kStatus_Fail;
+	}
+	PRINTF("\r\nI2C Transfer Status: %d\r\n", i2c_status);
+	return ret;
+}
 static void ui_master(void *pvParameters) {
 
 	boot_screen();
-	int ui_status_flags[19] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1, 0, 0,
+	int ui_status_flags[19] = { 1000, 1, 0, 0, 0, 7, 7, 0, 1, 1, 0, 1, 1, 1, 0, 0,
 			0, 0 };
 	int color_q[5] = { 0, 0, 0, 0, 0 };
 	while (1) {
+		ui_status_flags[COMPANION_STATUS] = master_handshake();
 		master_ui(ui_status_flags);
 		while (1) {
 			if (xQueueSendToFront(config_queue, ui_status_flags,
@@ -188,14 +298,14 @@ static void ui_master(void *pvParameters) {
 			}
 			if (valid_data) {
 				valid_data = 0;
-				PRINTF("%d", tx_buffer);
 				if (tx_buffer == 13) {
+					start_stop(ui_status_flags);
 					break;
 				}
 				else if(tx_buffer == 32)
 				{
+					play_pause(ui_status_flags);
 					PRINTF("Paused");
-					while(1);
 				}
 			}
 		}
