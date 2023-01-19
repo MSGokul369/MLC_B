@@ -51,6 +51,13 @@
 
 /***************************************/
 /**
+ * Command Returns
+ */
+#define START_OR_STOP 1
+#define FORWORD 2
+#define BACKWORD 3
+#define PAUSE 4
+/**
  * Colour Queue Data Format
  */
 #define DATA_FLAG 0
@@ -84,6 +91,26 @@
 
 /***************************************/
 
+/**
+ * Configuration I2C Frame
+ */
+#define I_REFRESH_RATE_MSH 0
+#define I_REFRESH_RATE_LSH 1
+#define I_RGB_SCHEME 2
+#define I_RED_START_VALUE 3
+#define I_GREEN_START_VALUE 4
+#define I_BLUE_START_VALUE 5
+#define I_RED_END_VALUE 6
+#define I_GREEN_END_VALUE 7
+#define I_BLUE_END_VALUE 8
+#define I_RED_RESOLUTION_VALUE 9
+#define I_GREEN_RESOLUTION_VALUE 10
+#define I_BLUE_SRESOLUTION_VALUE 11
+#define I_CHANGE_RATE_HUNDREDS 12
+#define I_CHANGE_RATE 13
+#define I_MODE 14
+#define I_CYCLES 15
+//#define I2C_FRAME_WIDTH 15
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -95,6 +122,9 @@
 static void pattern_task(void *pvParameters);
 static void ui_master(void *pvParameters);
 static void ui_slave(void *pvParameters);
+
+int colour_update(int red, int green, int blue);
+int coments_read(void);
 
 static QueueHandle_t config_queue = NULL;
 static QueueHandle_t color_queue = NULL;
@@ -115,10 +145,9 @@ uint8_t g_master_txBuff[I2C_FRAME_WIDTH] = "MASTER";
  * @brief Application entry point.
  */
 static void i2c_master_callback(I2C_Type *base,
-		i2c_master_edma_handle_t *handle, status_t status, void *userData)
-{
+		i2c_master_edma_handle_t *handle, status_t status, void *userData) {
 	/* Signal transfer success when received success status. */
-	PRINTF("\r\nI2C Transfer Complete\r\n");
+	//PRINTF("\r\nI2C Transfer Complete\r\n");
 }
 
 int main(void) {
@@ -173,8 +202,7 @@ int main(void) {
 	for (;;)
 		;
 }
-void i2c_send_config(uint8_t config_buf[16])
-{
+void i2c_send_config(uint8_t *config_buf) {
 	i2c_master_config_t masterConfig;
 	uint32_t sourceClock;
 	i2c_master_transfer_t masterXfer;
@@ -207,13 +235,11 @@ void i2c_send_config(uint8_t config_buf[16])
 	masterXfer.data = config_buf;
 	status_t i2c_status = I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR,
 			&g_m_dma_handle, &masterXfer);
-	if (i2c_status != 0)
-	{
+	if (i2c_status != 0) {
 		PRINTF("I2C Error %d", i2c_status);
 	}
 }
-status_t master_handshake(void)
-{
+status_t master_handshake(void) {
 	i2c_master_config_t masterConfig;
 	uint32_t sourceClock;
 	i2c_master_transfer_t masterXfer;
@@ -247,38 +273,51 @@ status_t master_handshake(void)
 			i2c_master_callback, NULL, &edmaHandle);
 
 	masterXfer.direction = kI2C_Write;
-	masterXfer.data = (uint8_t *)master_handshake_buffer;
+	masterXfer.data = (uint8_t*) master_handshake_buffer;
 	status_t i2c_status = I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR,
 			&g_m_dma_handle, &masterXfer);
 	PRINTF("\r\nI2C Transfer Status: %d\r\n", i2c_status);
 	masterXfer.direction = kI2C_Read;
-	masterXfer.data = (uint8_t *)slave_data;
+	masterXfer.data = (uint8_t*) slave_data;
 	i2c_status += I2C_MasterTransferEDMA(I2C_MASTER_BASEADDR, &g_m_dma_handle,
 			&masterXfer);
-	for (uint32_t i = 0U; i < I2C_FRAME_WIDTH; i++)
-	{
-		PRINTF("%c	 ", slave_data[i]);
-	}
-	if (strcmp(slave_data, slave_handshake_buffer) == 0)
-	{
+//	for (uint32_t i = 0U; i < I2C_FRAME_WIDTH; i++) {
+//		PRINTF("%c	 ", slave_data[i]);
+//	}
+	if (strcmp(slave_data, slave_handshake_buffer) == 0) {
 		ret = kStatus_Success;
-	}
-	else
-	{
+	} else {
 		ret = kStatus_Fail;
 	}
-	PRINTF("\r\nI2C Transfer Status: %d\r\n", i2c_status);
+//	PRINTF("\r\nI2C Transfer Status: %d\r\n", ret);
 	return ret;
 }
 static void ui_master(void *pvParameters) {
 
 	boot_screen();
-	int ui_status_flags[19] = { 1000, 1, 0, 0, 0, 7, 7, 0, 1, 1, 0, 1, 1, 1, 0, 0,
-			0, 0 };
+	int ui_status_flags[19] = { 1000, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1, 0,
+			0, 0, 0 };
+	uint8_t i2c_config[I2C_FRAME_WIDTH];
+	//int dummy[19] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int color_q[5] = { 0, 0, 0, 0, 0 };
 	while (1) {
 		ui_status_flags[COMPANION_STATUS] = master_handshake();
 		master_ui(ui_status_flags);
+		i2c_config[I_REFRESH_RATE_MSH] =
+				(uint8_t) (ui_status_flags[REFRESH_RATE] / 100);
+		i2c_config[I_REFRESH_RATE_LSH] =
+				(uint8_t) (ui_status_flags[REFRESH_RATE] % 100);
+		for (int i = I_RGB_SCHEME; i < I_CHANGE_RATE_HUNDREDS; i++) {
+			i2c_config[i] = (uint8_t) ui_status_flags[i - 1];
+		}
+		i2c_config[I_CHANGE_RATE_HUNDREDS] =
+				(uint8_t) ui_status_flags[CHANGE_RATE] / 100;
+		i2c_config[I_CHANGE_RATE] = (uint8_t) ui_status_flags[CHANGE_RATE]
+				% 100;
+		i2c_config[I_CYCLES] = (uint8_t) ui_status_flags[CYCLES];
+		i2c_send_config(i2c_config);
+//		while (xQueueReceive(config_queue, dummy, 0))
+//			;
 		while (1) {
 			if (xQueueSendToFront(config_queue, ui_status_flags,
 					0) == pdPASS) {
@@ -286,31 +325,69 @@ static void ui_master(void *pvParameters) {
 			}
 		}
 		ui_homescreen(ui_status_flags);
+		uint8_t i2c_send[15] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		while (1) {
 			if (xQueueReceive(color_queue, color_q, 0) == pdPASS) {
+				PRINTF("\033[24;55H                               ");
+				PRINTF("\033[24;55H                               ");
 				PRINTF("\033[24;55H%d %d %d", color_q[1], color_q[2],
 						color_q[3]);
+				i2c_send[0] = (uint8_t) 0;
+				i2c_send[1] = (uint8_t) color_q[1];
+				i2c_send[2] = (uint8_t) color_q[2];
+				i2c_send[3] = (uint8_t) color_q[3];
+				PRINTF("\033[25;55H%d %d %d", i2c_send[1], i2c_send[2],
+						i2c_send[3]);
+				ui_status_flags[CURRENT_RED_VALUE] = color_q[1];
+				ui_status_flags[CURRENT_GREEN_VALUE] = color_q[2];
+				ui_status_flags[CURRENT_BLUE_VALUE] = color_q[3];
+				i2c_send_config(i2c_send);
+				if (color_q[1] == ui_status_flags[RED_END_VALUE]
+						&& color_q[2] == ui_status_flags[GREEN_END_VALUE]
+						&& color_q[3] == ui_status_flags[BLUE_END_VALUE]) {
+					start_stop(ui_status_flags);
+					break;
+				}
 			}
-			if (color_q[1] == ui_status_flags[RED_END_VALUE]
-					&& color_q[2] == ui_status_flags[GREEN_END_VALUE]
-					&& color_q[3] == ui_status_flags[BLUE_END_VALUE]) {
-				break;
-			}
+			int stop_val[15] = { 0, 's', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+							0, 0, 0 };
+			int pause_val[15] =  { 0, 'p', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0 };
+			uint8_t stop_val_i2c[15] = { 0, 0, 's', 0, 0, 0, 0, 0, 0, 0,
+										0, 0, 0, 0, 0 };
+			uint8_t pause_val_i2c[15] = { 0, 0, 'p', 0, 0, 0, 0, 0, 0,
+										0, 0, 0, 0, 0, 0 };
 			if (valid_data) {
 				valid_data = 0;
 				if (tx_buffer == 13) {
 					start_stop(ui_status_flags);
+
+					i2c_send_config(stop_val_i2c);
+					while (1) {
+						if (xQueueSendToFront(config_queue, stop_val,
+								0) == pdPASS) {
+							break;
+						}
+					}
+					PRINTF("STOP");
+					//while(1);
 					break;
-				}
-				else if(tx_buffer == 32)
-				{
+				} else if (tx_buffer == 32) {
+
 					play_pause(ui_status_flags);
-					PRINTF("Paused");
+
+					i2c_send_config(pause_val_i2c);
+					while (1) {
+						if (xQueueSendToFront(config_queue, pause_val,
+								0) == pdPASS) {
+							break;
+						}
+					}
 				}
 			}
 		}
-		//ui_delay(5000000);
 	}
+	//ui_delay(5000000);
 }
 //static void color_print(void *pvParameters) {
 //	while (1) {
@@ -333,52 +410,58 @@ static void ui_slave(void *pvParameters) {
  */
 static void pattern_task(void *pvParameters) {
 	int config_arr[15];
-	int color_arr[4];
-	int i, j, k, cur_red, cur_green, cur_blue;
 	for (;;) {
 		//PRINTF("Pattern generator\r\n");
 		if (xQueueReceive(config_queue, config_arr, 0) == pdPASS) {
-			color_arr[DATA_FLAG] = 1;
-			color_arr[RED_VALUE] = config_arr[RED_START_VALUE];
-			color_arr[GREEN_VALUE] = config_arr[GREEN_START_VALUE];
-			color_arr[BLUE_VALUE] = config_arr[BLUE_START_VALUE];
-			for (i = 0; +i <= config_arr[RED_END_VALUE]; i +=
-					config_arr[RED_RESOLUTION_VALUE]) {
-				cur_red = config_arr[RED_START_VALUE] + i;
-				for (j = 0;
-						(config_arr[GREEN_START_VALUE] + j)
-								<= config_arr[GREEN_END_VALUE]; j +=
-								config_arr[GREEN_RESOLUTION_VALUE]) {
-					cur_green = config_arr[GREEN_START_VALUE] + j;
-					for (k = 0;
-							(config_arr[BLUE_START_VALUE] + k)
-									<= config_arr[BLUE_END_VALUE]; k +=
-									config_arr[BLUE_RESOLUTION_VALUE]) {
-						cur_blue = config_arr[BLUE_START_VALUE] + k;
-						color_arr[DATA_FLAG] = 1;
-						color_arr[RED_VALUE] = cur_red;
-						color_arr[GREEN_VALUE] = cur_green;
-						color_arr[BLUE_VALUE] = cur_blue;
-//						PRINTF("\033[24;55H%d %d %d", cur_red, cur_green,
-//								cur_blue);
-//						PRINTF("PAT_OK\r\n");
-						while (1) {
-							if (xQueueSendToFront(color_queue, color_arr,
-									0) == pdPASS) {
-								break;
-							}
-						}
-						ui_delay(50000);
-						if (config_arr[BLUE_RESOLUTION_VALUE] == 0)
-							break;
-					}
-					if (config_arr[GREEN_RESOLUTION_VALUE] == 0)
-						break;
-				}
-				if (config_arr[RED_RESOLUTION_VALUE] == 0)
-					break;
-			}
+			auto_mode(config_arr);
+//			while (1) {
+//				if (xQueueSendToFront(color_queue, color_arr,
+//						0) == pdPASS) {
+//					break;
+//				}
+//			}
 		}
 		//vTaskSuspend(NULL);
 	}
+}
+int colour_update(int red, int green, int blue) {
+	int colour_pattern[5];
+
+	colour_pattern[0] = 1;
+	colour_pattern[1] = red;
+	colour_pattern[2] = green;
+	colour_pattern[3] = blue;
+
+	while (1) {
+		if (xQueueSendToFront(color_queue, colour_pattern,0) == pdPASS) {
+			break;
+		}
+	}
+
+	return 0;
+}
+int comnts_read(void) {
+	int commands[15];
+	int ret = 0;
+	if (xQueuePeek(config_queue, commands, 0) == pdPASS) {
+		///PRINTF("c[0] %d c[1] %d", commands[0], commands[1]);
+		if (commands[0] == 0 && commands[1] == 's') {
+			PRINTF("Stop");
+			xQueueReceive(config_queue, commands, 0);
+			ret = START_OR_STOP;
+		} else if (commands[0] == 0 && commands[1] == '<') {
+			PRINTF("Back");
+			xQueueReceive(config_queue, commands, 0);
+			ret = BACKWORD;
+		} else if (commands[0] == 0 && commands[1] == '>') {
+			PRINTF("Forward");
+			xQueueReceive(config_queue, commands, 0);
+			ret = FORWORD;
+		} else if (commands[0] == 0 && commands[1] == 'p') {
+			PRINTF("Pause");
+			xQueueReceive(config_queue, commands, 0);
+			ret = PAUSE;
+		}
+	}
+	return ret;
 }
