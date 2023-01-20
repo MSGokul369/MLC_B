@@ -123,9 +123,6 @@ static void pattern_task(void *pvParameters);
 static void ui_master(void *pvParameters);
 static void ui_slave(void *pvParameters);
 
-int colour_update(int red, int green, int blue);
-int coments_read(void);
-
 static QueueHandle_t config_queue = NULL;
 static QueueHandle_t color_queue = NULL;
 
@@ -134,6 +131,7 @@ extern uint8_t tx_buffer;
 
 char master_handshake_buffer[10] = "MASTER";
 char slave_handshake_buffer[10] = "SLAVE";
+uint8_t i2c_free_flag = 1;
 
 i2c_master_edma_handle_t g_m_dma_handle;
 edma_handle_t edmaHandle;
@@ -148,6 +146,7 @@ static void i2c_master_callback(I2C_Type *base,
 		i2c_master_edma_handle_t *handle, status_t status, void *userData) {
 	/* Signal transfer success when received success status. */
 	//PRINTF("\r\nI2C Transfer Complete\r\n");
+	i2c_free_flag = 1;
 }
 
 int main(void) {
@@ -173,7 +172,7 @@ int main(void) {
 	if (master_slave_flag) {
 
 		if (xTaskCreate(ui_master, "Master User Interface",
-		configMINIMAL_STACK_SIZE + 1000,
+		configMINIMAL_STACK_SIZE + 1200,
 		NULL, hello_task_PRIORITY, NULL) !=
 		pdPASS) {
 			PRINTF("Task creation failed!.\r\n");
@@ -203,6 +202,9 @@ int main(void) {
 		;
 }
 void i2c_send_config(uint8_t *config_buf) {
+	while (!i2c_free_flag)
+		; //Wait for I2C
+	i2c_free_flag--;
 	i2c_master_config_t masterConfig;
 	uint32_t sourceClock;
 	i2c_master_transfer_t masterXfer;
@@ -300,6 +302,11 @@ static void ui_master(void *pvParameters) {
 	uint8_t i2c_config[I2C_FRAME_WIDTH];
 	//int dummy[19] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int color_q[5] = { 0, 0, 0, 0, 0 };
+	int stop_val[15] = { 0, 's', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int pause_val[15] = { 0, 'p', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	uint8_t stop_val_i2c[15] = { 0, 0, 's', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	uint8_t pause_val_i2c[15] =
+			{ 0, 0, 'p', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	while (1) {
 		ui_status_flags[COMPANION_STATUS] = master_handshake();
 		master_ui(ui_status_flags);
@@ -349,27 +356,20 @@ static void ui_master(void *pvParameters) {
 					break;
 				}
 			}
-			int stop_val[15] = { 0, 's', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-							0, 0, 0 };
-			int pause_val[15] =  { 0, 'p', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0 };
-			uint8_t stop_val_i2c[15] = { 0, 0, 's', 0, 0, 0, 0, 0, 0, 0,
-										0, 0, 0, 0, 0 };
-			uint8_t pause_val_i2c[15] = { 0, 0, 'p', 0, 0, 0, 0, 0, 0,
-										0, 0, 0, 0, 0, 0 };
 			if (valid_data) {
 				valid_data = 0;
 				if (tx_buffer == 13) {
-					start_stop(ui_status_flags);
-
 					i2c_send_config(stop_val_i2c);
+					start_stop(ui_status_flags);
 					while (1) {
 						if (xQueueSendToFront(config_queue, stop_val,
 								0) == pdPASS) {
 							break;
 						}
 					}
-					PRINTF("STOP");
+
+
+
 					//while(1);
 					break;
 				} else if (tx_buffer == 32) {
@@ -446,19 +446,19 @@ int comnts_read(void) {
 	if (xQueuePeek(config_queue, commands, 0) == pdPASS) {
 		///PRINTF("c[0] %d c[1] %d", commands[0], commands[1]);
 		if (commands[0] == 0 && commands[1] == 's') {
-			PRINTF("Stop");
+			PRINTF("Stop Received from Queue");
 			xQueueReceive(config_queue, commands, 0);
 			ret = START_OR_STOP;
 		} else if (commands[0] == 0 && commands[1] == '<') {
-			PRINTF("Back");
+			PRINTF("Back Received from Queue");
 			xQueueReceive(config_queue, commands, 0);
 			ret = BACKWORD;
 		} else if (commands[0] == 0 && commands[1] == '>') {
-			PRINTF("Forward");
+			PRINTF("Forward Received from Queue");
 			xQueueReceive(config_queue, commands, 0);
 			ret = FORWORD;
 		} else if (commands[0] == 0 && commands[1] == 'p') {
-			PRINTF("Pause");
+			PRINTF("Pause Received from Queue");
 			xQueueReceive(config_queue, commands, 0);
 			ret = PAUSE;
 		}
