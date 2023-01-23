@@ -24,7 +24,7 @@ void ui_homescreen(int *);
  * @brief Calls UI home screen and displays current configuration during slave mode operation.
  *
  */
-void ui_homescreen_slave();
+void ui_homescreen_slave(int *ui_current_values);
 /*!
  * @brief Configures RGB code scheme
  *

@@ -149,7 +149,6 @@ int auto_mode(int config_array[]) {
 
 	ftm_config_t ftmInfo;
 	int red_inc, green_inc, blue_inc;
-	int red_dec, green_dec, blue_dec;
 	uint8_t red_duty, command;
 	uint8_t green_duty, break_flag = 0;
 	uint8_t blue_duty;
@@ -206,63 +205,62 @@ int auto_mode(int config_array[]) {
 	if (config_array[MODE] == 1) {
 		do {
 
-			if (cycle == 0) {
+			if (config_array[CYCLES] == 0) {
 				cycle = 1;
 			} else {
 				cycle--;
 			}
-			// Up mode
-			//PRINTF("1 IS WORKING \r\n");
+
 			for (red_inc = config_array[RED_START_VALUE];
 					red_inc <= config_array[RED_END_VALUE];
 					red_inc = red_inc + config_array[RED_RESOLUTION_VALUE]) {
-//				PRINTF("%d,%d,%d\r\n", red_inc, green_inc, blue_inc);
 				for (green_inc = config_array[GREEN_START_VALUE];
 						green_inc <= config_array[GREEN_END_VALUE];
 						green_inc = green_inc
 								+ config_array[GREEN_RESOLUTION_VALUE]) {
-					for (blue_inc = config_array[GREEN_START_VALUE];
+					for (blue_inc = config_array[BLUE_START_VALUE];
 							blue_inc <= config_array[BLUE_END_VALUE];
 							blue_inc = blue_inc
 									+ config_array[BLUE_RESOLUTION_VALUE]) {
 						command = comnts_read();
 						if (command == START_OR_STOP) {
 							break_flag = 1;
-							break;
 						} else {
 							if (command == PAUSE) {
 								while (1) {
 									command = comnts_read();
 									if (command == PAUSE) {
 										break;
+									} else if (command == START_OR_STOP) {
+										break_flag = 1;
+										break;
 									}
 								}
 							}
-							blue_duty = (blue_inc / 3.0) * 100;
-							FTM_UpdatePwmDutycycle(FTM_ADDRESS,
-									(ftm_chnl_t) BLUE, FTM_MODE, blue_duty);
-							FTM_SetSoftwareTrigger(FTM_ADDRESS,
-							true);
-							colour_update(red_inc, green_inc, blue_inc);
-//									PRINTF("%d,%d,%d \r\n", red_duty,
-//											green_duty, blue_duty);
-							Delay(config_array[CHANGE_RATE]);
-
 						}
+						if (break_flag == 1
+								|| config_array[BLUE_RESOLUTION_VALUE] == 0) {
+							break;
+						}
+						blue_duty = (blue_inc / 3.0) * 100;
+						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
+						FTM_MODE, blue_duty);
+						FTM_SetSoftwareTrigger(FTM_ADDRESS,
+						true);
+						colour_update(red_inc, green_inc, blue_inc);
+						Delay(config_array[CHANGE_RATE]);
 					}
-					if (break_flag == 1) {
+					if (break_flag == 1
+							|| config_array[GREEN_RESOLUTION_VALUE] == 0) {
 						break;
 					}
 					green_duty = (green_inc / 7.0) * 100;
 					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
 					FTM_MODE, green_duty);
 					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-					//colour_update(red_inc, green_inc, blue_inc);
-					//Delay(config_array[CHANGE_RATE]);
-					//colour_update(red_inc, green_inc, blue_inc);
-					//Delay(config_array[CHANGE_RATE]);
 				}
-				if (break_flag == 1) {
+				if (break_flag == 1
+						|| config_array[RED_RESOLUTION_VALUE] == 0) {
 					break;
 				}
 				red_duty = (red_inc / 7.0) * 100;
@@ -272,121 +270,102 @@ int auto_mode(int config_array[]) {
 			}
 			if (break_flag == 1) {
 				break;
+			} else {
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
+						((config_array[RED_END_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+				FTM_MODE, ((config_array[GREEN_END_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
+						((config_array[BLUE_END_VALUE] / 3.0) * 100));
+				colour_update(config_array[RED_END_VALUE],
+						config_array[GREEN_END_VALUE],
+						config_array[BLUE_END_VALUE]);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 			}
 		} while (cycle);
 		//Rounding to the end colour
-		//FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,((config_array[RED_END_VALUE] / 7.0) * 100));
-		//FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN, FTM_MODE,((config_array[GREEN_END_VALUE] / 7.0) * 100));
-		//FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,((config_array[BLUE_END_VALUE] / 3.0) * 100));
-		//FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+
 	} else if (config_array[MODE] == 2) {
-
 		do {
-			if (cycle == 0) {
+
+			if (config_array[CYCLES] == 0) {
 				cycle = 1;
-			} else
+			} else {
 				cycle--;
-
-			//Down mode
-			PRINTF("IN DOWN MODE");
-			for (red_dec = config_array[RED_END_VALUE];
-					red_dec >= config_array[RED_START_VALUE];
-					red_dec = red_dec - config_array[RED_RESOLUTION_VALUE]) {
-				command = comnts_read();
-				if (command == START_OR_STOP) {
-					break;
-				} else {
-					while (command == PAUSE) {
-						command = comnts_read();
-						if (command == PAUSE) {
-							break;
-						}
-					}
-
-					for (green_dec = config_array[GREEN_END_VALUE];
-							green_dec >= config_array[GREEN_START_VALUE];
-							green_dec = green_dec
-									- config_array[GREEN_RESOLUTION_VALUE]) {
-
+			}
+			for (red_inc = config_array[RED_START_VALUE];
+					red_inc >= config_array[RED_END_VALUE];
+					red_inc = red_inc - config_array[RED_RESOLUTION_VALUE]) {
+				for (green_inc = config_array[GREEN_START_VALUE];
+						green_inc >= config_array[GREEN_END_VALUE];
+						green_inc = green_inc
+								- config_array[GREEN_RESOLUTION_VALUE]) {
+					for (blue_inc = config_array[BLUE_START_VALUE];
+							blue_inc >= config_array[BLUE_END_VALUE];
+							blue_inc = blue_inc
+									- config_array[BLUE_RESOLUTION_VALUE]) {
 						command = comnts_read();
 						if (command == START_OR_STOP) {
-							break;
+							break_flag = 1;
 						} else {
-							while (command == PAUSE) {
-								command = comnts_read();
-								if (command == PAUSE) {
-									break;
-								}
-							}
-
-							for (blue_dec = config_array[BLUE_END_VALUE];
-									blue_dec >= config_array[BLUE_START_VALUE];
-									blue_dec =
-											blue_dec
-													- config_array[BLUE_RESOLUTION_VALUE]) {
-								PRINTF("%d, %d, %d\r\n", red_duty, green_duty,
-										blue_duty);
-								if (command == START_OR_STOP) {
-									break_flag = 1;
-									break;
-								} else {
-									while (command == PAUSE) {
-										command = comnts_read();
-										if (command == PAUSE) {
-											break;
-										}
+							if (command == PAUSE) {
+								while (1) {
+									command = comnts_read();
+									if (command == PAUSE) {
+										break;
+									} else if (command == START_OR_STOP) {
+										break_flag = 1;
+										break;
 									}
-									blue_duty = (blue_dec / 3.0) * 100;
-									FTM_UpdatePwmDutycycle(FTM_ADDRESS,
-											(ftm_chnl_t) BLUE, FTM_MODE,
-											blue_duty);
-									FTM_SetSoftwareTrigger(FTM_ADDRESS,
-									true);
-									colour_update(red_dec, green_dec, blue_dec);
-									Delay(config_array[CHANGE_RATE]);
-
 								}
 							}
-							if (break_flag == 1) {
-								break;
-							}
-
-							green_duty = (green_dec / 7.0) * 100;
-							FTM_UpdatePwmDutycycle(FTM_ADDRESS,
-									(ftm_chnl_t) GREEN, FTM_MODE, green_duty);
-							FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-							//colour_update(red_dec, green_dec, blue_dec);
-							//Delay(config_array[CHANGE_RATE]);
 						}
+						if (break_flag == 1
+								|| config_array[BLUE_RESOLUTION_VALUE] == 0) {
+							break;
+						}
+						blue_duty = (blue_inc / 3.0) * 100;
+						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
+						FTM_MODE, blue_duty);
+						FTM_SetSoftwareTrigger(FTM_ADDRESS,
+						true);
+						colour_update(red_inc, green_inc, blue_inc);
+						Delay(config_array[CHANGE_RATE]);
 					}
-					if (break_flag == 1) {
+					if (break_flag == 1
+							|| config_array[GREEN_RESOLUTION_VALUE] == 0) {
 						break;
 					}
-					red_duty = (red_dec / 7.0) * 100;
-					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-					FTM_MODE, red_duty);
+					green_duty = (green_inc / 7.0) * 100;
+					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+					FTM_MODE, green_duty);
 					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-					//colour_update(red_dec, green_dec, blue_dec);
-					//Delay(config_array[CHANGE_RATE]);
 				}
+				if (break_flag == 1
+						|| config_array[RED_RESOLUTION_VALUE] == 0) {
+					break;
+				}
+				red_duty = (red_inc / 7.0) * 100;
 				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-				FTM_MODE, ((config_array[RED_END_VALUE] / 7.0) * 100));
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-				FTM_MODE, ((config_array[GREEN_END_VALUE] / 7.0) * 100));
-				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-				FTM_MODE, ((config_array[BLUE_END_VALUE] / 3.0) * 100));
+				FTM_MODE, red_duty);
 				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 			}
-
+			if (break_flag == 1) {
+				break;
+			} else {
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
+						((config_array[RED_END_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+				FTM_MODE, ((config_array[GREEN_END_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
+						((config_array[BLUE_END_VALUE] / 3.0) * 100));
+				colour_update(config_array[RED_END_VALUE],
+						config_array[GREEN_END_VALUE],
+						config_array[BLUE_END_VALUE]);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			}
 		} while (cycle);
-		//Rounding to end colour
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
-				((config_array[RED_END_VALUE] / 7.0) * 100));
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-		FTM_MODE, ((config_array[GREEN_END_VALUE] / 7.0) * 100));
-		FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
-				((config_array[BLUE_END_VALUE] / 3.0) * 100));
-		FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+		//Rounding to the end colour
 
 	} else if (config_array[MODE] == 3) {
 		do {
@@ -394,222 +373,137 @@ int auto_mode(int config_array[]) {
 				cycle = 1;
 			} else {
 				cycle--;
-				//PRINTF("In mode3");
-				//updown mode
-				for (red_inc = config_array[RED_START_VALUE];
-						red_inc <= config_array[RED_END_VALUE];
-						red_inc = red_inc
-								+ config_array[RED_RESOLUTION_VALUE]) {
-
-					command = comnts_read();
-					if (command == START_OR_STOP) {
-						break;
-					} else {
-						while (command == PAUSE) {
-							command = comnts_read();
+			}
+			for (red_inc = config_array[RED_START_VALUE];
+					red_inc <= config_array[RED_END_VALUE];
+					red_inc = red_inc + config_array[RED_RESOLUTION_VALUE]) {
+				for (green_inc = config_array[GREEN_START_VALUE];
+						green_inc <= config_array[GREEN_END_VALUE];
+						green_inc = green_inc
+								+ config_array[GREEN_RESOLUTION_VALUE]) {
+					for (blue_inc = config_array[BLUE_START_VALUE];
+							blue_inc <= config_array[BLUE_END_VALUE];
+							blue_inc = blue_inc
+									+ config_array[BLUE_RESOLUTION_VALUE]) {
+						command = comnts_read();
+						if (command == START_OR_STOP) {
+							break_flag = 1;
+						} else {
 							if (command == PAUSE) {
-								break;
-							}
-						}
-						for (green_inc = config_array[GREEN_START_VALUE];
-								green_inc <= config_array[GREEN_END_VALUE];
-								green_inc =
-										green_inc
-												+ config_array[GREEN_RESOLUTION_VALUE]) {
-
-							command = comnts_read();
-							if (command == START_OR_STOP) {
-								break_flag = 1;
-								break;
-							} else {
-								while (command == PAUSE) {
+								while (1) {
 									command = comnts_read();
 									if (command == PAUSE) {
 										break;
-									}
-								}
-								for (blue_inc = config_array[BLUE_START_VALUE];
-										blue_inc <= config_array[BLUE_END_VALUE];
-										blue_inc =
-												blue_inc
-														+ config_array[BLUE_RESOLUTION_VALUE]) {
-									PRINTF("%d, %d, %d\r\n", red_duty,
-											green_duty, blue_duty);
-									command = comnts_read();
-									if (command == START_OR_STOP) {
-										break;
-									} else {
-										command = comnts_read();
-										if (command == PAUSE) {
-											break;
-
-										}
-										blue_duty = (blue_inc / 3.0) * 100;
-										FTM_UpdatePwmDutycycle(
-										FTM_ADDRESS, (ftm_chnl_t) BLUE,
-										FTM_MODE, blue_duty);
-										FTM_SetSoftwareTrigger(
-										FTM_ADDRESS, true);
-										colour_update(red_inc, green_inc,
-												blue_inc);
-										Delay(config_array[CHANGE_RATE]);
-									}
-								}
-								if (break_flag == 1) {
-									break;
-								}
-								green_duty = (green_inc / 7.0) * 100;
-								FTM_UpdatePwmDutycycle(FTM_ADDRESS,
-										(ftm_chnl_t) GREEN, FTM_MODE,
-										green_duty);
-								FTM_SetSoftwareTrigger(FTM_ADDRESS,
-								true);
-								//colour_update(red_inc, green_inc, blue_inc);
-								//Delay(config_array[CHANGE_RATE]);
-							}
-						}
-						if (break_flag == 1) {
-							break;
-						}
-						red_duty = (red_inc / 7.0) * 100;
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-						FTM_MODE, red_duty);
-						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						//colour_update(red_inc, green_inc, blue_inc);
-						//Delay(config_array[CHANGE_RATE]);
-					}
-					// Rounding to the end colour
-					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-					FTM_MODE, ((config_array[RED_END_VALUE] / 7.0) * 100));
-					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-					FTM_MODE, ((config_array[GREEN_END_VALUE] / 7.0) * 100));
-					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-					FTM_MODE, ((config_array[BLUE_END_VALUE] / 3.0) * 100));
-					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-					//PRINTF("UPMODE");
-					Delay(config_array[CHANGE_RATE]);
-					//Starting the up to down pattern genertion
-					command = comnts_read();
-					if (command == START_OR_STOP) {
-						break;
-					} else {
-						while (command == PAUSE) {
-							command = comnts_read();
-							if (command == PAUSE) {
-								break;
-							}
-						}
-						for (red_dec = config_array[RED_END_VALUE];
-								red_dec >= config_array[RED_START_VALUE];
-								red_dec = red_dec
-										- config_array[RED_RESOLUTION_VALUE]) {
-
-							command = comnts_read();
-							if (command == START_OR_STOP) {
-								break;
-							} else {
-								while (command == PAUSE) {
-									command = comnts_read();
-									if (command == PAUSE) {
-										break;
-									}
-								}
-								for (green_dec = config_array[GREEN_END_VALUE];
-										green_dec
-												>= config_array[GREEN_START_VALUE];
-										green_dec =
-												green_dec
-														- config_array[GREEN_RESOLUTION_VALUE]) {
-
-									command = comnts_read();
-									if (command == START_OR_STOP) {
+									} else if (command == START_OR_STOP) {
 										break_flag = 1;
 										break;
-									} else {
-										while (command == PAUSE) {
-											command = comnts_read();
-											if (command == PAUSE) {
-												break;
-											}
-											for (blue_dec =
-													config_array[BLUE_END_VALUE];
-													blue_dec
-															>= config_array[BLUE_START_VALUE];
-													blue_dec =
-															blue_dec
-																	- config_array[BLUE_RESOLUTION_VALUE]) {
-												command = comnts_read();
-												if (command == START_OR_STOP) {
-													break_flag = 1;
-													break;
-												} else {
-													while (command == PAUSE) {
-														command = comnts_read();
-														if (command == PAUSE) {
-															break;
-														}
-													}
-													PRINTF("%d, %d, %d\r\n",
-															red_duty,
-															green_duty,
-															blue_duty);
-													blue_duty = (blue_dec / 3.0)
-															* 100;
-													FTM_UpdatePwmDutycycle(
-													FTM_ADDRESS,
-															(ftm_chnl_t) BLUE,
-															FTM_MODE,
-															blue_duty);
-													FTM_SetSoftwareTrigger(
-													FTM_ADDRESS,
-													true);
-													colour_update(red_dec,
-															green_dec,
-															blue_dec);
-													Delay(
-															config_array[CHANGE_RATE]);
-												}
-											}
-										}
-										if (break_flag == 1) {
-											break;
-										}
-										green_duty = (green_dec / 7.0) * 100;
-										FTM_UpdatePwmDutycycle(
-										FTM_ADDRESS, (ftm_chnl_t) GREEN,
-										FTM_MODE, green_duty);
-										FTM_SetSoftwareTrigger(
-										FTM_ADDRESS, true);
-										//colour_update(red_dec, green_dec,	blue_dec);
-										//Delay(config_array[CHANGE_RATE]);
 									}
 								}
-								if (break_flag == 1) {
-									break;
-								}
-								red_duty = (red_dec / 7.0) * 100;
-								FTM_UpdatePwmDutycycle(FTM_ADDRESS,
-										(ftm_chnl_t) RED, FTM_MODE, red_duty);
-								FTM_SetSoftwareTrigger(FTM_ADDRESS,
-								true);
-								//colour_update(red_inc, green_inc, blue_inc);
-								//Delay(config_array[CHANGE_RATE]);
 							}
 						}
-						// Rounding to the start colour
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
-						FTM_MODE,
-								((config_array[RED_START_VALUE] / 7.0) * 100));
-						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
-						FTM_MODE,
-								((config_array[GREEN_START_VALUE] / 7.0) * 100));
+						if (break_flag == 1
+								|| config_array[BLUE_RESOLUTION_VALUE] == 0) {
+							break;
+						}
+						blue_duty = (blue_inc / 3.0) * 100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
-						FTM_MODE,
-								((config_array[BLUE_START_VALUE] / 3.0) * 100));
-						FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-						//PRINTF("IN down mode");
+						FTM_MODE, blue_duty);
+						FTM_SetSoftwareTrigger(FTM_ADDRESS,
+						true);
+						colour_update(red_inc, green_inc, blue_inc);
+						Delay(config_array[CHANGE_RATE]);
 					}
+					if (break_flag == 1
+							|| config_array[GREEN_RESOLUTION_VALUE] == 0) {
+						break;
+					}
+					green_duty = (green_inc / 7.0) * 100;
+					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+					FTM_MODE, green_duty);
+					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 				}
+				if (break_flag == 1
+						|| config_array[RED_RESOLUTION_VALUE] == 0) {
+					break;
+				}
+				red_duty = (red_inc / 7.0) * 100;
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
+				FTM_MODE, red_duty);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			}
+			red_inc = config_array[RED_END_VALUE];
+			green_inc = config_array[GREEN_END_VALUE];
+			blue_inc = config_array[BLUE_END_VALUE];
+			for (red_inc = config_array[RED_END_VALUE];
+					red_inc >= config_array[RED_START_VALUE];
+					red_inc = red_inc - config_array[RED_RESOLUTION_VALUE]) {
+				for (green_inc = config_array[GREEN_END_VALUE];
+						green_inc >= config_array[GREEN_START_VALUE];
+						green_inc = green_inc
+								- config_array[GREEN_RESOLUTION_VALUE]) {
+					for (blue_inc = config_array[BLUE_END_VALUE];
+							blue_inc >= config_array[BLUE_START_VALUE];
+							blue_inc = blue_inc
+									- config_array[BLUE_RESOLUTION_VALUE]) {
+						command = comnts_read();
+						if (command == START_OR_STOP) {
+							break_flag = 1;
+						} else {
+							if (command == PAUSE) {
+								while (1) {
+									command = comnts_read();
+									if (command == PAUSE) {
+										break;
+									} else if (command == START_OR_STOP) {
+										break_flag = 1;
+										break;
+									}
+								}
+							}
+						}
+						if (break_flag == 1
+								|| config_array[BLUE_RESOLUTION_VALUE] == 0) {
+							break;
+						}
+						blue_duty = (blue_inc / 3.0) * 100;
+						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
+						FTM_MODE, blue_duty);
+						FTM_SetSoftwareTrigger(FTM_ADDRESS,
+						true);
+						colour_update(red_inc, green_inc, blue_inc);
+						Delay(config_array[CHANGE_RATE]);
+					}
+					if (break_flag == 1
+							|| config_array[GREEN_RESOLUTION_VALUE] == 0) {
+						break;
+					}
+					green_duty = (green_inc / 7.0) * 100;
+					FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+					FTM_MODE, green_duty);
+					FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+				}
+				if (break_flag == 1
+						|| config_array[RED_RESOLUTION_VALUE] == 0) {
+					break;
+				}
+				red_duty = (red_inc / 7.0) * 100;
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
+				FTM_MODE, red_duty);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
+			}
+			if (break_flag == 1) {
+				break;
+			} else {
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED, FTM_MODE,
+						((config_array[RED_START_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
+				FTM_MODE, ((config_array[GREEN_START_VALUE] / 7.0) * 100));
+				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE, FTM_MODE,
+						((config_array[BLUE_START_VALUE] / 3.0) * 100));
+				colour_update(config_array[RED_START_VALUE],
+						config_array[GREEN_START_VALUE],
+						config_array[BLUE_START_VALUE]);
+				FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
 			}
 		} while (cycle);
 	}
@@ -727,9 +621,9 @@ int manual_mode(int config_array[14]) {
 	FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) RED,
 	FTM_MODE, red_duty);
 	FTM_SetSoftwareTrigger(FTM_ADDRESS, true);
-	for (int j = 0; j < 14; j++) {
-		PRINTF("%d\r\n", config_array[j]);
-	}
+//	for (int j = 0; j < 14; j++) {
+//		PRINTF("%d\r\n", config_array[j]);
+//	}
 
 //PRINTF("%d, %d, %d", red_inc, green_inc, blue_inc);
 //PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
@@ -751,15 +645,15 @@ int manual_mode(int config_array[14]) {
 								blue_inc
 										+ (direc
 												* config_array[BLUE_RESOLUTION_VALUE])) {
-					PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
+//					PRINTF("%d, %d, %d\r\n", red_duty, green_duty, blue_duty);
 					word_flag = comnts_read();
 					//PRINTF("%d\r\n",word_flag);
 					//if (break_flag == 1) {
 					//break;
 					if (word_flag == 2) {
 						//PRINTF("\r\n in LOOP");
-						PRINTF("%d, %d, %d\r\n", red_duty, green_duty,
-								blue_duty);
+//						PRINTF("%d, %d, %d\r\n", red_duty, green_duty,
+//								blue_duty);
 						direc = 1;
 						blue_duty = (blue_inc / BLUE_MAX) * 100;
 						FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) BLUE,
@@ -784,7 +678,7 @@ int manual_mode(int config_array[14]) {
 				} else if (word_flag == 3) {
 					direc = -1;
 				}
-				PRINTF("\r\nIN GREEN LOOP");
+//				PRINTF("\r\nIN GREEN LOOP");
 				//green_inc = green_inc + config_array[GREEN_RESOLUTION_VALUE];
 				FTM_UpdatePwmDutycycle(FTM_ADDRESS, (ftm_chnl_t) GREEN,
 				FTM_MODE, green_duty);

@@ -153,12 +153,13 @@ void ui_homescreen(int *ui_current_values) {
 	PRINTF("\r\n");
 	PRINTF("\t\t\t\t Device Mode\t:\tMaster \r\n");
 	switch (ui_current_values[COMPANION_STATUS]) {
-		case kStatus_Success:
-			PRINTF("\t\t\t\t Slave Status\t:\tConnected\r\n");
-			break;
-		case kStatus_Fail:
-			PRINTF("\t\t\t\t Slave Status\t:\tDisconnected\r\n");
-			break;
+	case kStatus_Success:
+		PRINTF("\t\t\t\t Slave Status\t:\tConnected\r\n");
+		break;
+	default:
+		PRINTF("\t\t\t\t Slave Status\t:\tDisconnected with error %d\r\n",
+				ui_current_values[COMPANION_STATUS]);
+		break;
 	}
 	switch (ui_current_values[PROCESS_STATUS]) {
 	case 0:
@@ -222,62 +223,90 @@ void ui_homescreen(int *ui_current_values) {
 
 }
 
-void ui_homescreen_slave() {
-
-	//boot_screen();
-	ui_delay(5000000);
-
-	int current_mode_index = 1;
-	int color_change_rate = 1;
-	int led_refresh_rate = 1;
-	int start_color[3] = { 0, 0, 0 }, end_color[3] = { 0, 0, 0 },
-			resolution[3] = { 1, 1, 1 };
-
+void ui_homescreen_slave(int *ui_current_values) {
 	PRINTF("\e[1;1H\e[2J");
-	PRINTF("\r\n");
-	PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
-	PRINTF("\t\t\t |  __ \\ /\\   | |    |  ____|__   __|__   __|  ____| \r\n");
-	PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
-	PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
-	PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
-	PRINTF(
-			"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
-	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
-	PRINTF("\t\t\t\t    ******************* \r\n");
-	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Device Mode\t:\tSlave \r\n");
-	PRINTF("\t\t\t\t Master Status\t:\tOnline \r\n");
-	PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
-	PRINTF("\r\n");
-	PRINTF("\t\t\t\t Current Configurations:- \r\n");
-	PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n", led_refresh_rate);
-	PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n",
-			start_color[0], start_color[1], start_color[2]);
-	PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n",
-			end_color[0], end_color[1], end_color[2]);
-	PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n", color_change_rate);
+		PRINTF("\r\n");
+		PRINTF("\t\t\t  _____        _      ______ _______ _______ ______  \r\n");
+		PRINTF("\t\t\t |  __ \\ /\\   | |    |  ____|__   __|__   __|  ____| \r\n");
+		PRINTF("\t\t\t | |__) /  \\  | |    | |__     | |     | |  | |__    \r\n");
+		PRINTF("\t\t\t |  ___/ /\\ \\ | |    |  __|    | |     | |  |  __|   \r\n");
+		PRINTF("\t\t\t | |  / ____ \\| |____| |____   | |     | |  | |____  \r\n");
+		PRINTF(
+				"\t\t\t |_| /_/    \\_\\______|______|  |_|     |_|  |______| \tVersion 2.0\r\n");
+		PRINTF("\r\n");
+		PRINTF("\t\t\t\t Multicolor LED Controller \r\n");
+		PRINTF("\t\t\t\t    ******************* \r\n");
+		PRINTF("\r\n");
+		PRINTF("\t\t\t\t Device Mode\t:\tSlave \r\n");
+		switch (ui_current_values[COMPANION_STATUS]) {
+		case kStatus_Success:
+			PRINTF("\t\t\t\t Slave Status\t:\tConnected\r\n");
+			break;
+		default:
+			PRINTF("\t\t\t\t Slave Status\t:\tDisconnected with error %d\r\n",
+					ui_current_values[COMPANION_STATUS]);
+			break;
+		}
+		switch (ui_current_values[PROCESS_STATUS]) {
+		case 0:
+			PRINTF("\t\t\t\t Process Status\t:\tStopped \r\n");
+			break;
+		case 1:
+			PRINTF("\t\t\t\t Process Status\t:\tRunning \r\n");
+			break;
+		case 2:
+			PRINTF("\t\t\t\t Process Status\t:\tPaused \r\n");
+			break;
+		default:
+			PRINTF("\t\t\t\t Process Status\t:\tInvalid \r\n");
+			break;
+		}
+		PRINTF("\r\n");
+		PRINTF("\t\t\t\t Current Configurations:- \r\n");
+		PRINTF("\t\t\t\t Refresh Rate\t\t:\t%d Hz \r\n",
+				ui_current_values[REFRESH_RATE]);
+		PRINTF("\t\t\t\t Start Color Code\t:\t%d %d %d True Color \r\n",
+				ui_current_values[RED_START_VALUE],
+				ui_current_values[GREEN_START_VALUE],
+				ui_current_values[BLUE_START_VALUE]);
+		PRINTF("\t\t\t\t End Color Code\t\t:\t%d %d %d True Color \r\n",
+				ui_current_values[RED_END_VALUE],
+				ui_current_values[GREEN_END_VALUE],
+				ui_current_values[BLUE_END_VALUE]);
+		PRINTF("\t\t\t\t Color Change Rate\t:\t%d\r\n",
+				ui_current_values[CHANGE_RATE]);
 
-	switch (current_mode_index) {
-	case 1:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP \r\n");
-		break;
-	case 2:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-DOWN \r\n");
-		break;
-	case 3:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN \r\n");
-		break;
-	case 4:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tManual \r\n");
-		break;
-	default:
-		PRINTF("\t\t\t\t Mode\t\t\t:\tInvalid \r\n");
-		break;
-	}
-	PRINTF("\t\t\t\t Resolution\t\t:\t%d %d %d RGB\r\n", resolution[0],
-			resolution[1], resolution[2]);
-	PRINTF("\r\n");
+		switch (ui_current_values[MODE]) {
+		case 1:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP \r\n");
+			break;
+		case 2:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-DOWN \r\n");
+			break;
+		case 3:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tAuto-UP/DOWN | Count : %d \r\n",
+					ui_current_values[CYCLES]);
+			break;
+		case 4:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tManual \r\n");
+			break;
+		default:
+			PRINTF("\t\t\t\t Mode\t\t\t:\tInvalid \r\n");
+			break;
+		}
+		PRINTF("\t\t\t\t Resolution\t\t:\t%d %d %d RGB\r\n",
+				ui_current_values[RED_RESOLUTION_VALUE],
+				ui_current_values[GREEN_RESOLUTION_VALUE],
+				ui_current_values[BLUE_RESOLUTION_VALUE]);
+		PRINTF("\r\n");
+		PRINTF(
+				"\t\t\t\t Current RGB Code :   \033[31m%d \033[32m%d \033[34m%d \033[37m\r\n \033[0m",
+				ui_current_values[CURRENT_RED_VALUE],
+				ui_current_values[CURRENT_GREEN_VALUE],
+				ui_current_values[CURRENT_BLUE_VALUE]);
+		PRINTF("\r\n");
+		PRINTF("\r\n");
+
 }
 
 void ui_rgb_code_scheme(int current_rgb_scheme_index) {
@@ -650,19 +679,19 @@ void master_ui(int *ui_current_values) {
 			start_stop(ui_current_values);
 			break;
 		}/* else if (input_index == 4) {
-			play_pause(ui_current_values);
-			if (ui_current_values[PROCESS_STATUS] == 1) {
-			} else if (ui_current_values[PROCESS_STATUS] == 0) {
-//				message_queue[0] = 0;
-//				message_queue[1] = 0;
-//				message_queue[2] = 's';
-			} else if (ui_current_values[PROCESS_STATUS] == 2) {
-//				message_queue[0] = 0;
-//				message_queue[1] = 0;
-//				message_queue[2] = 'p';
-			}
-			break;
-		}*/ else {
+		 play_pause(ui_current_values);
+		 if (ui_current_values[PROCESS_STATUS] == 1) {
+		 } else if (ui_current_values[PROCESS_STATUS] == 0) {
+		 //				message_queue[0] = 0;
+		 //				message_queue[1] = 0;
+		 //				message_queue[2] = 's';
+		 } else if (ui_current_values[PROCESS_STATUS] == 2) {
+		 //				message_queue[0] = 0;
+		 //				message_queue[1] = 0;
+		 //				message_queue[2] = 'p';
+		 }
+		 break;
+		 }*/else {
 			PRINTF("\r\n\tInvalid data received!");
 			ui_delay(5000000);
 		}
@@ -672,12 +701,15 @@ void master_ui(int *ui_current_values) {
 void start_stop(int *ui_current_values) {
 	while (1) {
 		if (ui_current_values[MODE] == 1) {
-			if ((ui_current_values[RED_START_VALUE]
-					< ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							< ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							< ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					+ ui_current_values[RED_RESOLUTION_VALUE])
+					<= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							+ ui_current_values[GREEN_RESOLUTION_VALUE])
+							<= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							+ ui_current_values[BLUE_RESOLUTION_VALUE])
+							<= ui_current_values[BLUE_END_VALUE])) {
 				if (ui_current_values[PROCESS_STATUS] == 0) {
 					ui_current_values[PROCESS_STATUS] = 1;
 				} else if (ui_current_values[PROCESS_STATUS] == 1) {
@@ -692,12 +724,15 @@ void start_stop(int *ui_current_values) {
 				break;
 			}
 		} else if (ui_current_values[MODE] == 2) {
-			if ((ui_current_values[RED_START_VALUE]
-					> ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							> ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							> ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					- ui_current_values[RED_RESOLUTION_VALUE])
+					>= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							- ui_current_values[GREEN_RESOLUTION_VALUE])
+							>= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							- ui_current_values[BLUE_RESOLUTION_VALUE])
+							>= ui_current_values[BLUE_END_VALUE])) {
 				if (ui_current_values[PROCESS_STATUS] == 0) {
 					ui_current_values[PROCESS_STATUS] = 1;
 				} else if (ui_current_values[PROCESS_STATUS] == 1) {
@@ -707,7 +742,7 @@ void start_stop(int *ui_current_values) {
 				}
 				break;
 			} else {
-				//PRINTF("\r\n\tInvalid Configuration");
+				PRINTF("\r\n\tInvalid Configuration");
 				ui_delay(5000000);
 				break;
 			}
@@ -750,12 +785,15 @@ void start_stop(int *ui_current_values) {
 void play_pause(int *ui_current_values) {
 	while (1) {
 		if (ui_current_values[MODE] == 1) {
-			if ((ui_current_values[RED_START_VALUE]
-					< ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							< ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							< ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					+ ui_current_values[RED_RESOLUTION_VALUE])
+					<= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							+ ui_current_values[GREEN_RESOLUTION_VALUE])
+							<= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							+ ui_current_values[BLUE_RESOLUTION_VALUE])
+							<= ui_current_values[BLUE_END_VALUE])) {
 				if (ui_current_values[PROCESS_STATUS] == 0) {
 					ui_current_values[PROCESS_STATUS] = 0;
 				} else if (ui_current_values[PROCESS_STATUS] == 1) {
@@ -770,12 +808,15 @@ void play_pause(int *ui_current_values) {
 				break;
 			}
 		} else if (ui_current_values[MODE] == 2) {
-			if ((ui_current_values[RED_START_VALUE]
-					> ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							> ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							> ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					- ui_current_values[RED_RESOLUTION_VALUE])
+					>= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							- ui_current_values[GREEN_RESOLUTION_VALUE])
+							>= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							- ui_current_values[BLUE_RESOLUTION_VALUE])
+							>= ui_current_values[BLUE_END_VALUE])) {
 				if (ui_current_values[PROCESS_STATUS] == 0) {
 					ui_current_values[PROCESS_STATUS] = 0;
 				} else if (ui_current_values[PROCESS_STATUS] == 1) {
@@ -820,15 +861,6 @@ void play_pause(int *ui_current_values) {
 			break;
 		}
 	}
-}
-
-void slave_ui(void *pvParameters) {
-	while (1) {
-		ui_homescreen_slave();
-		while (1)
-			;
-	}
-
 }
 
 int arrow_key_navigate(char prompt[][30], int num_of_ops, int x_cor, int y_cor) {
@@ -1218,12 +1250,15 @@ int validation_warning(int *ui_current_values) {
 	int validation_flag = 0;
 	while (1) {
 		if (ui_current_values[MODE] == 1) {
-			if ((ui_current_values[RED_START_VALUE]
-					< ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							< ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							< ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					+ ui_current_values[RED_RESOLUTION_VALUE])
+					<= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							+ ui_current_values[GREEN_RESOLUTION_VALUE])
+							<= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							+ ui_current_values[BLUE_RESOLUTION_VALUE])
+							<= ui_current_values[BLUE_END_VALUE])) {
 				break;
 			} else {
 				PRINTF("\r\n\tConfiguration is invalid...");
@@ -1233,12 +1268,15 @@ int validation_warning(int *ui_current_values) {
 				break;
 			}
 		} else if (ui_current_values[MODE] == 2) {
-			if ((ui_current_values[RED_START_VALUE]
-					> ui_current_values[RED_END_VALUE])
-					&& (ui_current_values[GREEN_START_VALUE]
-							> ui_current_values[GREEN_END_VALUE])
-					&& (ui_current_values[BLUE_START_VALUE]
-							> ui_current_values[BLUE_END_VALUE])) {
+			if (((ui_current_values[RED_START_VALUE]
+					+ ui_current_values[RED_RESOLUTION_VALUE])
+					>= ui_current_values[RED_END_VALUE])
+					&& ((ui_current_values[GREEN_START_VALUE]
+							+ ui_current_values[GREEN_RESOLUTION_VALUE])
+							>= ui_current_values[GREEN_END_VALUE])
+					&& ((ui_current_values[BLUE_START_VALUE]
+							+ ui_current_values[BLUE_RESOLUTION_VALUE])
+							>= ui_current_values[BLUE_END_VALUE])) {
 				break;
 			} else {
 				PRINTF("\r\n\tConfiguration is invalid...");
