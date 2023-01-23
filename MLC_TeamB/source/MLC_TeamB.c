@@ -156,34 +156,75 @@ static void ui_master(void *pvParameters) {
 
 	boot_screen();
 
-	int *configuration_pointer;
-	int configuration_array[14] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1 };
+	int configuration_array[15] =
+			{ 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1, 1 };
+	int configuration_store_array[15] = { 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1,
+			1, 1 };
 
-	while(1){
-	while(1){
-	configuration_pointer = master_ui(configuration_array[0],
-			configuration_array[1], configuration_array[2],
-			configuration_array[3], configuration_array[4],
-			configuration_array[5], configuration_array[6],
-			configuration_array[7], configuration_array[8],
-			configuration_array[9], configuration_array[10],
-			configuration_array[11], configuration_array[12],
-			configuration_array[13]);
-	for (int i = 0; i <= 13; i++) {
-		configuration_array[i] = configuration_pointer[i];
-	}
-	for (int i = 0; i <= 13; i++) {
-		PRINTF("%d\r\n", configuration_array[i]);
-	}
-	ui_delay(5000);
-	}
+	while (1) {
+		if (configuration_array[1] != 'p' || configuration_array[1] != 's') {
+			for (int i = 0; i <= 14; i++) {
+				configuration_store_array[i] = configuration_array[i];
+			}
+			master_ui(configuration_store_array);
+
+		} else {
+			master_ui(configuration_store_array);
+		}
+
+		for (int i = 0; i <= 14; i++) {
+			PRINTF("%d ", configuration_array[i]);
+		}
+		PRINTF("\n\r");
+		for (int i = 0; i <= 14; i++) {
+			PRINTF("%d ", configuration_store_array[i]);
+		}
+
+		while (1) {
+			int uart_read;
+			UART_DisableInterrupts(UART,
+					kUART_RxDataRegFullInterruptEnable
+							| kUART_RxOverrunInterruptEnable);
+			while (!(kUART_RxDataRegFullFlag & UART_GetStatusFlags(UART0)))
+				UART_ClearStatusFlags(UART0, kUART_RxDataRegFullFlag);
+			uart_read = UART_ReadByte(UART0);
+
+			if (uart_read == 32) {
+				UART_EnableInterrupts(UART,
+						kUART_RxDataRegFullInterruptEnable
+								| kUART_RxOverrunInterruptEnable);
+				break;
+			} else {
+				continue;
+			}
+		}
 	}
 }
 
 static void ui_slave(void *pvParameters) {
+	int configuration_array[17] = { 1, 1, 1, 0, 0, 0, 7, 7, 3, 1, 1, 1, 1, 1, 1,
+			1, 0 };
+	while (1) {
+		if ((configuration_array[0] != 0) || (configuration_array[2] == 112) || (configuration_array[2] == 115) ) {
+			configuration_array[16] = 1;
+			ui_homescreen_slave(configuration_array);
+			if ((configuration_array[0] == 0) && (configuration_array[2] == 0)
+					&& (configuration_array[3] == 0)) {
+				slave_current_colour(configuration_array);
+			} else if ((configuration_array[0] == 0)
+					&& (configuration_array[2] == 0)
+					&& (configuration_array[3] != 0)) {
+				if (configuration_array[3] == 112) {
+					configuration_array[16] = 2;
+				} else if (configuration_array[3] == 115) {
+					configuration_array[16] = 0;
+				}
+			}
+		}
+		delay(10000);
+	}
 
 }
-
 /*!
  * @brief Task responsible for printing of "Hello world." message.
  */

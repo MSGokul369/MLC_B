@@ -25,11 +25,14 @@ void ui_homescreen(int led_refresh_rate, int start_color[3], int end_color[3],
  * @brief Calls UI home screen and displays current configuration during slave mode operation.
  *
  */
-void ui_homescreen_slave();
+void ui_homescreen_slave(int *configuration_array);
 /*!
  * @brief Configures RGB code scheme
  *
  */
+
+int slave_current_colour(int *configuration_array);
+
 void ui_rgb_code_scheme(int curent_rgb_scheme_index);
 /*!
  * @brief Configures color pattern parameters
@@ -78,11 +81,7 @@ int up_down_count_read(void);
  * @brief Call UI and subsequent functions in Master mode.
  *
  */
-int* master_ui(int led_refresh_rate_arg,int rgb_scheme_index, int start_color_1_arg,
-		int start_color_2_arg, int start_color_3_arg, int end_color_1_arg,
-		int end_color_2_arg, int end_color_3_arg, int resolution_1_arg,
-		int resolution_2_arg, int resolution_3_arg, int color_change_rate_arg,
-		int current_mode_index_arg, int up_down_count_arg);
+void master_ui(int *configuration_array);
 
 /*!
  * @brief Call UI and subsequent functions in Slave mode
